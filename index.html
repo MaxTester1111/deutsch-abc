@@ -62,7 +62,6 @@
     </div>
   </div>
   <div id="bar">
-    <button class="nav" id="prev" style="background:#5b6f8a" aria-label="Zurück">◀</button>
     <div id="strip"></div>
     <button class="nav" id="next" aria-label="Weiter">▶</button>
   </div>
@@ -149,7 +148,6 @@ cv.addEventListener("pointermove", e => { if (!cur) return; cur.push(pt(e)); red
 // ---------- Bedienung ----------
 function go(n) { i = (n + DATA.length) % DATA.length; render(); }
 $("next").onclick = () => go(i + 1);
-$("prev").onclick = () => go(i - 1);
 $("spWord").onclick = () => say(DATA[i][2]);
 
 DATA.forEach((d, k) => {
