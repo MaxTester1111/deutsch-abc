@@ -45,6 +45,15 @@
     100% { transform: translateX(0);     box-shadow: 0 0 0 0 #e03131, 0 2px 8px #0002; }
   }
   #right.wackeln { animation: wackeln .55s ease-in-out; }
+  #fin { position: fixed; inset: 0; z-index: 10; background: #f4f1ea; display: none;
+    flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+  #fin.show { display: flex; }
+  #fin .star { font-size: min(45vh, 40vw); line-height: 1; animation: puls 1s ease-in-out infinite; }
+  #fin .txt { font-size: min(18vh, 14vw); font-weight: bold; color: #1f3a5f; }
+  .konf { position: absolute; top: -5vh; width: 14px; height: 22px; border-radius: 3px;
+    animation: fall linear forwards; }
+  @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
+  @keyframes puls { 50% { transform: scale(1.12); } }
   @media (orientation: portrait) {
     #main { flex-direction: column; } #left { flex: 0 0 42%; }
   }
@@ -75,6 +84,8 @@
     <button class="nav" id="next" aria-label="Weiter">▶</button>
   </div>
 </div>
+
+<div id="fin"><div class="star">⭐</div><div class="txt">Super!</div></div>
 
 <script>
 const DATA = [
@@ -162,7 +173,28 @@ function warn() {
   void r.offsetWidth;
   r.classList.add("wackeln");
 }
-$("next").onclick = () => { if (strokes.length === 0) warn(); else go(i + 1); };
+function finale() {
+  const f = $("fin");
+  f.querySelectorAll(".konf").forEach(k => k.remove());
+  const farben = ["#e03131", "#f08c00", "#2b8a3e", "#1c7ed6", "#9c36b5", "#fcc419"];
+  for (let k = 0; k < 70; k++) {
+    const c = document.createElement("div");
+    c.className = "konf";
+    c.style.left = Math.random() * 100 + "vw";
+    c.style.background = farben[k % farben.length];
+    c.style.animationDuration = (2.5 + Math.random() * 2) + "s";
+    c.style.animationDelay = (Math.random() * 1.5) + "s";
+    f.appendChild(c);
+  }
+  f.classList.add("show");
+  say("Super!");
+  setTimeout(() => { f.classList.remove("show"); go(0); }, 5000);
+}
+$("next").onclick = () => {
+  if (strokes.length === 0) warn();
+  else if (i === DATA.length - 1) finale();
+  else go(i + 1);
+};
 $("spWord").onclick = () => say(DATA[i][2]);
 
 DATA.forEach((d, k) => {
