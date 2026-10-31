@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+<meta name="theme-color" content="#1f3a5f">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' fill='%231f3a5f'/%3E%3Ctext x='256' y='350' font-family='Arial' font-weight='bold' font-size='260' text-anchor='middle' fill='white'%3EABC%3C/text%3E%3C/svg%3E">
+<title>ABC</title>
+<style>
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: #f4f1ea; color: #1f3a5f;
+    font-family: Arial, Helvetica, sans-serif; overflow: hidden; touch-action: none; user-select: none; }
+  #app { display: flex; flex-direction: column; height: 100%; }
+  #main { flex: 1; display: flex; gap: 16px; padding: 16px; min-height: 0; }
+  #left { flex: 0 0 38%; background: #fff; border-radius: 24px; box-shadow: 0 2px 8px #0002;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 12px; }
+  #big { font-size: min(34vh, 24vw); font-weight: bold; line-height: 1; letter-spacing: .05em; }
+  .row { display: flex; gap: 14px; align-items: center; }
+  #wordbox { text-align: center; }
+  #emoji { font-size: min(14vh, 10vw); line-height: 1.1; }
+  #word { font-size: min(7vh, 5vw); }
+  #word b { color: #d9480f; }
+  #right { flex: 1; position: relative; background: #fff; border-radius: 24px; box-shadow: 0 2px 8px #0002; overflow: hidden; }
+  #ghost { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-weight: bold; color: #c9d3e0; pointer-events: none; line-height: 1; }
+  #ghost.off { visibility: hidden; }
+  canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; }
+  button { border: none; border-radius: 50%; background: #1f3a5f; color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px #0003; }
+  button:active { transform: scale(.92); }
+  .sp { width: 84px; height: 84px; }
+  .sp svg { width: 46px; height: 46px; }
+  #bar { display: flex; align-items: center; gap: 12px; padding: 0 16px 14px; }
+  .nav { width: 96px; height: 96px; background: #2b8a3e; font-size: 56px; flex: 0 0 auto; }
+  #strip { flex: 1; display: flex; gap: 6px; overflow-x: auto; padding: 6px; touch-action: pan-x; }
+  #strip button { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 14px; background: #fff; color: #1f3a5f;
+    font-size: 28px; font-weight: bold; }
+  #strip button.cur { background: #1f3a5f; color: #fff; }
+  @media (orientation: portrait) {
+    #main { flex-direction: column; } #left { flex: 0 0 42%; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="main">
+    <div id="left">
+      <div id="big">A</div>
+      <div id="wordbox">
+        <div id="emoji"></div>
+        <div class="row" style="justify-content:center">
+          <div id="word"></div>
+          <button class="sp" id="spWord" aria-label="Wort sprechen">
+            <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="right">
+      <div id="ghost"></div>
+      <canvas id="cv"></canvas>
+    </div>
+  </div>
+  <div id="bar">
+    <button class="nav" id="prev" style="background:#5b6f8a" aria-label="Zurück">◀</button>
+    <div id="strip"></div>
+    <button class="nav" id="next" aria-label="Weiter">▶</button>
+  </div>
+</div>
+
+<script>
+const DATA = [
+ ["A","Ah","Apfel","🍎"],["B","Beh","Banane","🍌"],["C","Zeh","Computer","💻"],["D","Deh","Dusche","🚿"],
+ ["E","Eh","Elefant","🐘"],["F","Eff","Fisch","🐟"],["G","Geh","Gabel","🍴"],["H","Hah","Haus","🏠"],
+ ["I","Ih","Igel","🦔"],["J","Jott","Jacke","🧥"],["K","Kah","Katze","🐱"],["L","Ell","Lampe","💡"],
+ ["M","Emm","Mond","🌙"],["N","Enn","Nase","👃"],["O","Oh","Ohr","👂"],["P","Peh","Pizza","🍕"],
+ ["Q","Kuh","Quadrat","⬜"],["R","Err","Regen","🌧️"],["S","Ess","Sonne","☀️"],["T","Teh","Tasse","☕"],
+ ["U","Uh","Uhr","🕐"],["V","Fau","Vogel","🐦"],["W","Weh","Wasser","💧"],["X","Iks","Taxi","🚕"],
+ ["Y","Üpsilon","Yacht","⛵"],["Z","Zett","Zug","🚆"],["Ä","Äh","Ärmel","👕"],["Ö","Öh","Öl","🛢️"],
+ ["Ü","Üh","Überraschung","🎁"]
+];
+let i = 0, upper = true, strokes = [], cur = null;
+const $ = id => document.getElementById(id);
+const cv = $("cv"), ctx = cv.getContext("2d");
+
+// ---------- Sprache ----------
+let voice = null;
+function pickVoice() {
+  const v = speechSynthesis.getVoices();
+  voice = v.find(x => /^de[-_]DE/i.test(x.lang)) || v.find(x => /^de/i.test(x.lang)) || null;
+}
+if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+function say(text) {
+  if (!("speechSynthesis" in window)) return;
+  speechSynthesis.cancel();
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "de-DE"; if (voice) u.voice = voice;
+  u.rate = 0.7;
+  speechSynthesis.speak(u);
+}
+
+// ---------- Anzeige ----------
+function letterShown(l) { return upper ? l.toUpperCase() : (l === "ß" ? "ß" : l.toLowerCase()); }
+function render() {
+  const [l, name, word, emoji] = DATA[i];
+  $("big").textContent = l === "ß" ? "ß" : l.toUpperCase();
+  $("emoji").textContent = emoji;
+  const re = new RegExp(l, "i");
+  $("word").innerHTML = word.replace(re, m => "<b>" + m + "</b>");
+  updateGhost();
+  strokes = []; redraw();
+  document.querySelectorAll("#strip button").forEach((b, k) => b.classList.toggle("cur", k === i));
+  const c = document.querySelector("#strip button.cur"); if (c) c.scrollIntoView({inline: "center", block: "nearest"});
+}
+function updateGhost() {
+  const g = $("ghost");
+  g.textContent = letterShown(DATA[i][0]);
+  const r = $("right").getBoundingClientRect();
+  g.style.fontSize = Math.min(r.height * 0.95, r.width * 0.9) + "px";
+}
+
+// ---------- Whiteboard ----------
+function fit() {
+  const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
+  cv.width = r.width * d; cv.height = r.height * d;
+  updateGhost(); redraw();
+}
+function redraw() {
+  const w = cv.width, h = cv.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.lineCap = ctx.lineJoin = "round";
+  ctx.strokeStyle = "#1f3a5f";
+  ctx.lineWidth = Math.max(10, Math.min(w, h) * 0.035);
+  for (const s of strokes) {
+    ctx.beginPath();
+    s.forEach((p, k) => k ? ctx.lineTo(p[0] * w, p[1] * h) : ctx.moveTo(p[0] * w, p[1] * h));
+    if (s.length === 1) ctx.lineTo(s[0][0] * w + 0.1, s[0][1] * h);
+    ctx.stroke();
+  }
+}
+function pt(e) {
+  const r = cv.getBoundingClientRect();
+  return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
+}
+cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); cur = [pt(e)]; strokes.push(cur); redraw(); });
+cv.addEventListener("pointermove", e => { if (!cur) return; cur.push(pt(e)); redraw(); });
+["pointerup", "pointercancel"].forEach(t => cv.addEventListener(t, () => { cur = null; }));
+
+// ---------- Bedienung ----------
+function go(n) { i = (n + DATA.length) % DATA.length; render(); }
+$("next").onclick = () => go(i + 1);
+$("prev").onclick = () => go(i - 1);
+$("spWord").onclick = () => say(DATA[i][2]);
+
+DATA.forEach((d, k) => {
+  const b = document.createElement("button");
+  b.textContent = d[0];
+  b.onclick = () => go(k);
+  $("strip").appendChild(b);
+});
+window.addEventListener("resize", fit);
+fit(); render();
+</script>
+</body>
+</html>
