@@ -36,6 +36,15 @@
   #strip button { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 14px; background: #fff; color: #1f3a5f;
     font-size: 28px; font-weight: bold; }
   #strip button.cur { background: #1f3a5f; color: #fff; }
+  @keyframes wackeln {
+    0%   { transform: translateX(0);     box-shadow: 0 0 0 0 #e03131, 0 2px 8px #0002; }
+    15%  { transform: translateX(-16px); box-shadow: 0 0 0 8px #e03131, 0 2px 8px #0002; }
+    35%  { transform: translateX(14px);  box-shadow: 0 0 0 8px #e03131, 0 2px 8px #0002; }
+    55%  { transform: translateX(-10px); box-shadow: 0 0 0 8px #e03131, 0 2px 8px #0002; }
+    75%  { transform: translateX(6px);   box-shadow: 0 0 0 8px #e03131, 0 2px 8px #0002; }
+    100% { transform: translateX(0);     box-shadow: 0 0 0 0 #e03131, 0 2px 8px #0002; }
+  }
+  #right.wackeln { animation: wackeln .55s ease-in-out; }
   @media (orientation: portrait) {
     #main { flex-direction: column; } #left { flex: 0 0 42%; }
   }
@@ -147,7 +156,13 @@ cv.addEventListener("pointermove", e => { if (!cur) return; cur.push(pt(e)); red
 
 // ---------- Bedienung ----------
 function go(n) { i = (n + DATA.length) % DATA.length; render(); }
-$("next").onclick = () => go(i + 1);
+function warn() {
+  const r = $("right");
+  r.classList.remove("wackeln");
+  void r.offsetWidth;
+  r.classList.add("wackeln");
+}
+$("next").onclick = () => { if (strokes.length === 0) warn(); else go(i + 1); };
 $("spWord").onclick = () => say(DATA[i][2]);
 
 DATA.forEach((d, k) => {
