@@ -247,7 +247,7 @@ function startAnim() {
   const g = geom();
   const st = GLYPH[DATA[i][0]].map(s => toPx(s, g));
   const lens = st.map(s => { let L = 0; for (let k = 1; k < s.length; k++) L += Math.hypot(s[k][0] - s[k-1][0], s[k][1] - s[k-1][1]); return L; });
-  const durs = lens.map(L => 1200 + L * 3.2), gap = 600, hold = 2000;
+  const durs = lens.map(L => 900 + L * 2.4), gap = 450, hold = 1700;
   const total = durs.reduce((a, d) => a + d + gap, 0) + hold;
   const t0 = performance.now(), a = { raf: 0 };
   anim = a;
