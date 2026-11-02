@@ -54,6 +54,19 @@
     animation: fall linear forwards; }
   @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
   @keyframes puls { 50% { transform: scale(1.12); } }
+  #tpl, #anim { pointer-events: none; }
+  body:not(.m1) #tpl, body:not(.m1) #anim, body:not(.m1) #spSound { display: none; }
+  body.m1 #wordbox, body.m1 #ghost { display: none; }
+  #mode { position: fixed; top: 24px; right: 24px; z-index: 5; width: 52px; height: 52px;
+    font-size: 28px; font-weight: bold; background: #5b6f8a; }
+  #menu { position: fixed; inset: 0; z-index: 20; background: #0007; display: none;
+    align-items: center; justify-content: center; gap: 28px; }
+  #menu.show { display: flex; }
+  #menu .opt { width: min(38vh, 36vw); height: min(46vh, 42vw); border-radius: 28px; background: #fff; color: #1f3a5f;
+    flex-direction: column; gap: 10px; border: 6px solid transparent; }
+  #menu .opt.cur { border-color: #2b8a3e; }
+  #menu .opt .n { font-size: min(14vh, 12vw); font-weight: bold; line-height: 1; }
+  #menu .opt .v { font-size: min(9vh, 8vw); font-weight: bold; line-height: 1.1; letter-spacing: .05em; }
   @media (orientation: portrait) {
     #main { flex-direction: column; } #left { flex: 0 0 42%; }
   }
@@ -64,6 +77,9 @@
   <div id="main">
     <div id="left">
       <div id="big">A</div>
+      <button class="sp" id="spSound" aria-label="Laut sprechen">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+      </button>
       <div id="wordbox">
         <div id="emoji"></div>
         <div class="row" style="justify-content:center">
@@ -76,6 +92,8 @@
     </div>
     <div id="right">
       <div id="ghost"></div>
+      <canvas id="tpl"></canvas>
+      <canvas id="anim"></canvas>
       <canvas id="cv"></canvas>
     </div>
   </div>
@@ -86,6 +104,12 @@
 </div>
 
 <div id="fin"><div class="star">⭐</div><div class="txt">Super!</div></div>
+
+<button id="mode" aria-label="Übung wählen">1</button>
+<div id="menu">
+  <button class="opt" data-m="1"><div class="n">1</div><div class="v">ABC</div></button>
+  <button class="opt" data-m="2"><div class="n">2</div><div class="v">🍎🍌🚕</div></button>
+</div>
 
 <script>
 const DATA = [
@@ -101,6 +125,146 @@ const DATA = [
 let i = 0, upper = true, strokes = [], cur = null;
 const $ = id => document.getElementById(id);
 const cv = $("cv"), ctx = cv.getContext("2d");
+let mode = 1;
+
+// ---------- Übung 1: Laute und Schreibrichtung ----------
+// Lautschrift für die Computerstimme (leicht anpassbar, falls ein Laut schlecht klingt)
+const SOUND = {
+  A:"aaa", B:"bö", C:"kö", D:"dö", E:"eee", F:"fff", G:"gö", H:"hö", I:"iii", J:"jö", K:"kö", L:"lll", M:"mmm",
+  N:"nnn", O:"ooo", P:"pö", Q:"kwö", R:"rrr", S:"sss", T:"tö", U:"uuu", V:"fff", W:"wö", X:"ks", Y:"üüü", Z:"tsö",
+  Ä:"äää", Ö:"ööö", Ü:"üüü"
+};
+// Buchstaben als Striche in einem Feld von 80 x 100, in der Reihenfolge, wie man sie schreibt
+function arc(cx, cy, rx, ry, a0, a1) {
+  const n = Math.max(8, Math.ceil(Math.abs(a1 - a0) / 10)), o = [];
+  for (let k = 0; k <= n; k++) {
+    const a = (a0 + (a1 - a0) * k / n) * Math.PI / 180;
+    o.push([cx + rx * Math.cos(a), cy + ry * Math.sin(a)]);
+  }
+  return o;
+}
+function uml(base) {
+  return base.map(s => s.map(p => [p[0], 22 + p[1] * 0.78])).concat([[[28, 6], [28, 7]], [[52, 6], [52, 7]]]);
+}
+const G_A = [[[40,0],[4,100]], [[40,0],[76,100]], [[17,65],[63,65]]];
+const G_O = [arc(40,50,38,50,-90,-450)];
+const G_U = [[[8,0],[8,65]].concat(arc(40,65,32,35,180,0), [[72,0]])];
+const GLYPH = {
+  A: G_A,
+  B: [[[8,0],[8,100]], [[8,0],[45,0]].concat(arc(45,25,25,25,-90,90), [[48,50]], arc(48,75,27,25,-90,90), [[8,100]])],
+  C: [arc(40,50,38,50,-40,-320)],
+  D: [[[8,0],[8,100]], [[8,0],[35,0]].concat(arc(35,50,40,50,-90,90), [[8,100]])],
+  E: [[[10,0],[10,100]], [[10,0],[70,0]], [[10,50],[60,50]], [[10,100],[70,100]]],
+  F: [[[10,0],[10,100]], [[10,0],[70,0]], [[10,50],[60,50]]],
+  G: [arc(40,50,38,50,-40,-360), [[78,50],[42,50]]],
+  H: [[[8,0],[8,100]], [[72,0],[72,100]], [[8,50],[72,50]]],
+  I: [[[40,0],[40,100]]],
+  J: [[[55,0],[55,70]].concat(arc(30,70,25,30,0,150))],
+  K: [[[10,0],[10,100]], [[70,0],[10,58]], [[29,40],[72,100]]],
+  L: [[[10,0],[10,100]], [[10,100],[70,100]]],
+  M: [[[8,0],[8,100]], [[8,0],[40,65],[72,0],[72,100]]],
+  N: [[[8,0],[8,100]], [[8,0],[72,100],[72,0]]],
+  O: G_O,
+  P: [[[8,0],[8,100]], [[8,0],[40,0]].concat(arc(40,25,28,25,-90,90), [[8,50]])],
+  Q: G_O.concat([[[48,70],[75,100]]]),
+  R: [[[8,0],[8,100]], [[8,0],[40,0]].concat(arc(40,25,28,25,-90,90), [[8,50]]), [[34,50],[72,100]]],
+  S: [arc(40,25,28,25,-30,-270).concat(arc(40,75,30,25,-90,150))],
+  T: [[[5,0],[75,0]], [[40,0],[40,100]]],
+  U: G_U,
+  V: [[[4,0],[40,100]], [[76,0],[40,100]]],
+  W: [[[2,0],[20,100],[40,25],[60,100],[78,0]]],
+  X: [[[6,0],[74,100]], [[74,0],[6,100]]],
+  Y: [[[6,0],[40,50]], [[74,0],[40,50],[40,100]]],
+  Z: [[[8,0],[72,0],[8,100],[72,100]]],
+  Ä: uml(G_A), Ö: uml(G_O), Ü: uml(G_U)
+};
+const tpl = $("tpl"), an = $("anim"), tctx = tpl.getContext("2d"), actx = an.getContext("2d");
+function geom() {
+  const W = cv.width, H = cv.height, u = Math.min(H * 0.78 / 100, W * 0.8 / 80);
+  return { u, ox: (W - 80 * u) / 2, oy: (H - 100 * u) / 2 };
+}
+function toPx(s, g) { return s.map(p => [g.ox + p[0] * g.u, g.oy + p[1] * g.u]); }
+function drawTemplate() {
+  tctx.clearRect(0, 0, tpl.width, tpl.height);
+  if (mode !== 1) return;
+  const g = geom();
+  tctx.lineCap = tctx.lineJoin = "round";
+  tctx.strokeStyle = "#c9d3e0";
+  tctx.lineWidth = tpl.height * 0.075;
+  for (const s of GLYPH[DATA[i][0]]) {
+    const p = toPx(s, g);
+    tctx.beginPath();
+    p.forEach((q, k) => k ? tctx.lineTo(q[0], q[1]) : tctx.moveTo(q[0], q[1]));
+    tctx.stroke();
+  }
+}
+let anim = null;
+function stopAnim() {
+  if (anim) { cancelAnimationFrame(anim.raf); anim = null; }
+  actx.clearRect(0, 0, an.width, an.height);
+}
+function partial(pts, d) {
+  const out = [pts[0]];
+  let acc = 0, ang = 0;
+  for (let k = 1; k < pts.length; k++) {
+    const dx = pts[k][0] - pts[k-1][0], dy = pts[k][1] - pts[k-1][1], sl = Math.hypot(dx, dy);
+    ang = Math.atan2(dy, dx);
+    if (acc + sl >= d) {
+      const r = sl ? (d - acc) / sl : 0;
+      out.push([pts[k-1][0] + dx * r, pts[k-1][1] + dy * r]);
+      return { out, ang };
+    }
+    out.push(pts[k]); acc += sl;
+  }
+  return { out, ang };
+}
+function drawPart(pts, len, prog, head, num, many) {
+  const H = an.height, { out, ang } = partial(pts, len * prog);
+  actx.lineCap = actx.lineJoin = "round";
+  actx.strokeStyle = "#f08c00";
+  actx.lineWidth = H * 0.03;
+  actx.beginPath();
+  out.forEach((q, k) => k ? actx.lineTo(q[0], q[1]) : actx.moveTo(q[0], q[1]));
+  actx.stroke();
+  if (many) {
+    actx.fillStyle = "#d9480f";
+    actx.beginPath(); actx.arc(pts[0][0], pts[0][1], H * 0.032, 0, Math.PI * 2); actx.fill();
+    actx.fillStyle = "#fff"; actx.font = "bold " + (H * 0.04) + "px Arial";
+    actx.textAlign = "center"; actx.textBaseline = "middle";
+    actx.fillText(num, pts[0][0], pts[0][1] + 1);
+  }
+  if (head) {
+    const t = out[out.length - 1], s = H * 0.055;
+    actx.save(); actx.translate(t[0], t[1]); actx.rotate(ang);
+    actx.fillStyle = "#d9480f";
+    actx.beginPath(); actx.moveTo(s * 0.7, 0); actx.lineTo(-s * 0.5, -s * 0.6); actx.lineTo(-s * 0.5, s * 0.6); actx.closePath(); actx.fill();
+    actx.restore();
+  }
+}
+function startAnim() {
+  stopAnim();
+  if (mode !== 1) return;
+  const g = geom();
+  const st = GLYPH[DATA[i][0]].map(s => toPx(s, g));
+  const lens = st.map(s => { let L = 0; for (let k = 1; k < s.length; k++) L += Math.hypot(s[k][0] - s[k-1][0], s[k][1] - s[k-1][1]); return L; });
+  const durs = lens.map(L => 1200 + L * 3.2), gap = 600, hold = 2000;
+  const total = durs.reduce((a, d) => a + d + gap, 0) + hold;
+  const t0 = performance.now(), a = { raf: 0 };
+  anim = a;
+  function frame(now) {
+    if (anim !== a) return;
+    const t = (now - t0) % total;
+    actx.clearRect(0, 0, an.width, an.height);
+    let acc = 0;
+    for (let k = 0; k < st.length; k++) {
+      if (t >= acc + durs[k] + gap) { drawPart(st[k], lens[k], 1, false, k + 1, st.length > 1); acc += durs[k] + gap; continue; }
+      if (t >= acc) drawPart(st[k], lens[k], Math.min(1, (t - acc) / durs[k]), true, k + 1, st.length > 1);
+      break;
+    }
+    a.raf = requestAnimationFrame(frame);
+  }
+  a.raf = requestAnimationFrame(frame);
+}
 
 // ---------- Sprache ----------
 let voice = null;
@@ -128,6 +292,7 @@ function render() {
   $("word").innerHTML = word.replace(re, m => "<b>" + m + "</b>");
   updateGhost();
   strokes = []; redraw();
+  drawTemplate(); startAnim();
   document.querySelectorAll("#strip button").forEach((b, k) => b.classList.toggle("cur", k === i));
   const c = document.querySelector("#strip button.cur"); if (c) c.scrollIntoView({inline: "center", block: "nearest"});
 }
@@ -141,8 +306,9 @@ function updateGhost() {
 // ---------- Whiteboard ----------
 function fit() {
   const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
-  cv.width = r.width * d; cv.height = r.height * d;
-  updateGhost(); redraw();
+  cv.width = tpl.width = an.width = r.width * d;
+  cv.height = tpl.height = an.height = r.height * d;
+  updateGhost(); redraw(); drawTemplate(); startAnim();
 }
 function redraw() {
   const w = cv.width, h = cv.height;
@@ -166,7 +332,37 @@ cv.addEventListener("pointermove", e => { if (!cur) return; cur.push(pt(e)); red
 ["pointerup", "pointercancel"].forEach(t => cv.addEventListener(t, () => { cur = null; }));
 
 // ---------- Bedienung ----------
-function go(n) { i = (n + DATA.length) % DATA.length; render(); }
+let curAudio = null;
+// Spielt audio/laut-<buchstabe>.mp3 ab; fehlt die Datei, spricht die Computerstimme den Laut
+function laut(l) {
+  if (curAudio) { curAudio.pause(); curAudio = null; }
+  if ("speechSynthesis" in window) speechSynthesis.cancel();
+  const k = l.toLowerCase().replace("ä", "ae").replace("ö", "oe").replace("ü", "ue");
+  const a = new Audio("audio/laut-" + k + ".mp3");
+  curAudio = a;
+  a.onerror = () => say(SOUND[l]);
+  a.play().catch(() => {});
+}
+let soundTimer = null;
+function go(n) {
+  i = (n + DATA.length) % DATA.length; render();
+  clearTimeout(soundTimer);
+  if (mode === 1) soundTimer = setTimeout(() => laut(DATA[i][0]), 400);
+}
+function setMode(m) {
+  mode = m;
+  document.body.classList.toggle("m1", m === 1);
+  $("mode").textContent = m;
+  document.querySelectorAll("#menu .opt").forEach(o => o.classList.toggle("cur", +o.dataset.m === m));
+  if (m === 1) go(0); else { clearTimeout(soundTimer); stopAnim(); i = 0; render(); drawTemplate(); }
+}
+$("mode").onclick = () => $("menu").classList.add("show");
+$("menu").onclick = e => {
+  const o = e.target.closest(".opt");
+  $("menu").classList.remove("show");
+  if (o && +o.dataset.m !== mode) setMode(+o.dataset.m);
+};
+$("spSound").onclick = () => { laut(DATA[i][0]); startAnim(); };
 function warn() {
   const r = $("right");
   r.classList.remove("wackeln");
@@ -204,7 +400,7 @@ DATA.forEach((d, k) => {
   $("strip").appendChild(b);
 });
 window.addEventListener("resize", fit);
-fit(); render();
+fit(); setMode(1);
 </script>
 </body>
 </html>
