@@ -55,7 +55,8 @@
   @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
   @keyframes puls { 50% { transform: scale(1.12); } }
   #tpl, #anim { pointer-events: none; }
-  body:not(.m1) #tpl, body:not(.m1) #anim, body:not(.m1) #spSound { display: none; }
+  body:not(.m1) #tpl, body:not(.m1) #anim { display: none; }
+  #spSound { display: none; }
   body.m1 #wordbox, body.m1 #ghost { display: none; }
   #mode { position: fixed; top: 24px; right: 24px; z-index: 5; width: 52px; height: 52px;
     font-size: 28px; font-weight: bold; background: #5b6f8a; }
@@ -347,7 +348,6 @@ let soundTimer = null;
 function go(n) {
   i = (n + DATA.length) % DATA.length; render();
   clearTimeout(soundTimer);
-  if (mode === 1) soundTimer = setTimeout(() => laut(DATA[i][0]), 400);
 }
 function setMode(m) {
   mode = m;
