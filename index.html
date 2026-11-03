@@ -55,8 +55,7 @@
   @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
   @keyframes puls { 50% { transform: scale(1.12); } }
   #tpl, #anim { pointer-events: none; }
-  body:not(.m1) #tpl, body:not(.m1) #anim { display: none; }
-  #spSound { display: none; }
+  body:not(.m1) #tpl, body:not(.m1) #anim, body:not(.m1) #spSound { display: none; }
   body.m1 #wordbox, body.m1 #ghost { display: none; }
   #mode { position: fixed; top: 24px; right: 24px; z-index: 5; width: 52px; height: 52px;
     font-size: 28px; font-weight: bold; background: #5b6f8a; }
@@ -334,20 +333,19 @@ cv.addEventListener("pointermove", e => { if (!cur) return; cur.push(pt(e)); red
 
 // ---------- Bedienung ----------
 let curAudio = null;
-// Spielt audio/laut-<buchstabe>.mp3 ab; fehlt die Datei, spricht die Computerstimme den Laut
+// Spielt audio/<Buchstabe>.mp3 ab (z. B. audio/M.mp3); fehlt die Datei, bleibt es still
 function laut(l) {
   if (curAudio) { curAudio.pause(); curAudio = null; }
   if ("speechSynthesis" in window) speechSynthesis.cancel();
-  const k = l.toLowerCase().replace("ä", "ae").replace("ö", "oe").replace("ü", "ue");
-  const a = new Audio("audio/laut-" + k + ".mp3");
+  const a = new Audio("audio/" + encodeURIComponent(l) + ".mp3");
   curAudio = a;
-  a.onerror = () => say(SOUND[l]);
   a.play().catch(() => {});
 }
 let soundTimer = null;
 function go(n) {
   i = (n + DATA.length) % DATA.length; render();
   clearTimeout(soundTimer);
+  if (mode === 1) soundTimer = setTimeout(() => laut(DATA[i][0]), 400);
 }
 function setMode(m) {
   mode = m;
