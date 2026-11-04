@@ -367,9 +367,125 @@ function pt(e) {
   const r = cv.getBoundingClientRect();
   return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
 }
-cv.addEventListener("pointerdown", e => { cv.setPointerCapture(e.pointerId); cur = [pt(e)]; strokes.push(cur); redraw(); });
+cv.addEventListener("pointerdown", e => { if (m1Busy) return; cv.setPointerCapture(e.pointerId); cur = [pt(e)]; strokes.push(cur); redraw(); });
 cv.addEventListener("pointermove", e => { if (!cur) return; cur.push(pt(e)); redraw(); });
 ["pointerup", "pointercancel"].forEach(t => cv.addEventListener(t, () => { cur = null; }));
+
+// ---------- Übung 1: Spielanleitung (Finger-Visualisierung) ----------
+let m1Busy = false, m1Timers = [], m1Raf = 0;
+function stopM1Demo() {
+  m1Busy = false;
+  m1Timers.forEach(t => clearTimeout(t));
+  m1Timers = [];
+  if (m1Raf) { cancelAnimationFrame(m1Raf); m1Raf = 0; }
+  $("spSound").style.transform = "";
+  $("next").style.transform = "";
+  if (typeof ddFinger !== "undefined" && ddFinger) {
+    ddFinger.style.display = "none";
+    ddFinger.style.transition = "none";
+    ddFinger.style.transform = "";
+  }
+}
+function setFingerPos(cx, cy, smoothMs) {
+  ddFinger.style.display = "block";
+  const fr = ddFinger.getBoundingClientRect();
+  const x = cx - fr.width * 0.42, y = cy - fr.height * 0.06;
+  ddFinger.style.transition = smoothMs ? `left ${smoothMs}ms ease-in-out, top ${smoothMs}ms ease-in-out, transform .2s` : "none";
+  ddFinger.style.left = x + "px";
+  ddFinger.style.top = y + "px";
+}
+function runM1Demo() {
+  stopM1Demo();
+  m1Busy = true;
+  i = 0; render(); stopAnim();
+  const t1 = setTimeout(() => {
+    if (mode !== 1 || !m1Busy) return;
+    const rLeft = $("left").getBoundingClientRect();
+    const rSp = $("spSound").getBoundingClientRect();
+    setFingerPos(rLeft.left + rLeft.width * 0.5, rLeft.bottom - 20, 0);
+    ddFinger.style.transform = "scale(1)";
+    const tGlide = setTimeout(() => {
+      if (mode !== 1 || !m1Busy) return;
+      setFingerPos(rSp.left + rSp.width / 2, rSp.top + rSp.height / 2, 850);
+    }, 80);
+    const t2 = setTimeout(() => {
+      if (mode !== 1 || !m1Busy) return;
+      ddFinger.style.transform = "scale(0.84)";
+      $("spSound").style.transform = "scale(0.84)";
+      laut("A");
+    }, 1250);
+    const t2b = setTimeout(() => {
+      if (mode !== 1 || !m1Busy) return;
+      ddFinger.style.transform = "scale(1)";
+      $("spSound").style.transform = "";
+      const g = geom();
+      const st0 = toPx(GLYPH["A"][0], g)[0];
+      const rCv = cv.getBoundingClientRect();
+      setFingerPos(rCv.left + (st0[0] / cv.width) * rCv.width, rCv.top + (st0[1] / cv.height) * rCv.height, 750);
+    }, 1650);
+    const t3 = setTimeout(() => {
+      if (mode !== 1 || !m1Busy) return;
+      startAnim();
+      const g = geom();
+      const st = GLYPH["A"].map(s => toPx(s, g));
+      const lens = st.map(s => { let L = 0; for (let k = 1; k < s.length; k++) L += Math.hypot(s[k][0] - s[k-1][0], s[k][1] - s[k-1][1]); return L; });
+      const durs = lens.map(L => 900 + L * 2.4), gap = 450, lag = 260;
+      const tStart = performance.now();
+      function step(now) {
+        if (mode !== 1 || !m1Busy) return;
+        const elapsed = now - tStart - lag;
+        const r = cv.getBoundingClientRect();
+        strokes = [];
+        let acc = 0, activeTip = null;
+        for (let k = 0; k < st.length; k++) {
+          if (elapsed >= acc + durs[k]) {
+            strokes.push(st[k].map(p => [p[0] / cv.width, p[1] / cv.height]));
+            if (elapsed < acc + durs[k] + gap && k + 1 < st.length) {
+              const u = (elapsed - (acc + durs[k])) / gap;
+              const pEnd = st[k][st[k].length - 1], pNext = st[k + 1][0];
+              activeTip = [pEnd[0] + (pNext[0] - pEnd[0]) * u, pEnd[1] + (pNext[1] - pEnd[1]) * u];
+            }
+            acc += durs[k] + gap;
+            continue;
+          }
+          if (elapsed >= acc) {
+            const prog = Math.min(1, (elapsed - acc) / durs[k]);
+            const { out } = partial(st[k], lens[k] * prog);
+            strokes.push(out.map(p => [p[0] / cv.width, p[1] / cv.height]));
+            activeTip = out[out.length - 1];
+          }
+          break;
+        }
+        redraw();
+        if (activeTip) {
+          setFingerPos(r.left + (activeTip[0] / cv.width) * r.width, r.top + (activeTip[1] / cv.height) * r.height, 0);
+        }
+        const totalTrace = durs.reduce((a, d) => a + d, 0) + gap * (st.length - 1);
+        if (elapsed < totalTrace) {
+          m1Raf = requestAnimationFrame(step);
+        } else {
+          const rNext = $("next").getBoundingClientRect();
+          setFingerPos(rNext.left + rNext.width / 2, rNext.top + rNext.height / 2, 700);
+          const t4 = setTimeout(() => {
+            if (mode !== 1 || !m1Busy) return;
+            ddFinger.style.transform = "scale(0.84)";
+            $("next").style.transform = "scale(0.84)";
+          }, 850);
+          const t5 = setTimeout(() => {
+            if (mode !== 1 || !m1Busy) return;
+            $("next").style.transform = "";
+            stopM1Demo();
+            go(0);
+          }, 1250);
+          m1Timers.push(t4, t5);
+        }
+      }
+      m1Raf = requestAnimationFrame(step);
+    }, 2400);
+    m1Timers.push(tGlide, t2, t2b, t3);
+  }, 600);
+  m1Timers.push(t1);
+}
 
 // ---------- Bedienung ----------
 let curAudio = null;
@@ -393,8 +509,9 @@ function setMode(m) {
   document.body.classList.toggle("m2", m === 2);
   $("mode").textContent = m;
   document.querySelectorAll("#menu .opt").forEach(o => o.classList.toggle("cur", +o.dataset.m === m));
+  stopM1Demo();
   stopDdDemo();
-  if (m === 1) { fit(); go(0); }
+  if (m === 1) { fit(); runM1Demo(); }
   else if (m === 2) { clearTimeout(soundTimer); stopAnim(); startDdRound(); }
   else { clearTimeout(soundTimer); stopAnim(); i = 0; fit(); render(); drawTemplate(); }
 }
@@ -404,7 +521,7 @@ $("menu").onclick = e => {
   $("menu").classList.remove("show");
   if (o && +o.dataset.m !== mode) setMode(+o.dataset.m);
 };
-$("spSound").onclick = () => { laut(DATA[i][0]); startAnim(); };
+$("spSound").onclick = () => { if (!m1Busy) { laut(DATA[i][0]); startAnim(); } };
 function warn(el = $("right")) {
   el.classList.remove("wackeln");
   void el.offsetWidth;
@@ -583,6 +700,7 @@ function endDdDrag(e) {
 ddTop.addEventListener("pointerup", endDdDrag);
 ddTop.addEventListener("pointercancel", endDdDrag);
 $("next").onclick = () => {
+  if (m1Busy) return;
   if (strokes.length === 0) warn();
   else if (i === DATA.length - 1) finale();
   else go(i + 1);
@@ -592,7 +710,7 @@ $("spWord").onclick = () => say(DATA[i][2]);
 DATA.forEach((d, k) => {
   const b = document.createElement("button");
   b.textContent = d[0];
-  b.onclick = () => go(k);
+  b.onclick = () => { if (!m1Busy) go(k); };
   $("strip").appendChild(b);
 });
 window.addEventListener("resize", fit);
