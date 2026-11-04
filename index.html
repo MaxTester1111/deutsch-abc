@@ -74,7 +74,7 @@
     font-size: min(22vh, 13vw); font-weight: bold; border: 6px solid transparent;
     transition: transform .2s, background .2s, color .2s, border-color .2s; }
   .dd-card.ok { background: #2b8a3e; color: #fff; border-color: #2b8a3e; transform: scale(1.06); }
-  #ddFinger { position: fixed; z-index: 15; font-size: min(12vh, 12vw); line-height: 1;
+  #ddFinger { position: fixed; z-index: 15; font-size: min(18vh, 18vw); line-height: 1;
     pointer-events: none; display: none; filter: drop-shadow(0 4px 8px #0005); }
   #mode { position: fixed; top: 24px; right: 24px; z-index: 8; width: 52px; height: 52px;
     font-size: 28px; font-weight: bold; background: #5b6f8a; }
@@ -481,7 +481,7 @@ function startDdRound() {
   ddIdx = 0;
   runDdDemo();
 }
-function runDdDemo() {
+function runDdDemo(left = 2) {
   ddBusy = true;
   setupDdBoard("A", ["B", "A", "M", "S"]);
   const t1 = setTimeout(() => {
@@ -489,7 +489,7 @@ function runDdDemo() {
     const rTop = ddTop.getBoundingClientRect();
     const targetCard = ddCards[1];
     const rTar = targetCard.getBoundingClientRect();
-    const sx = rTop.left + rTop.width * 0.52, sy = rTop.top + rTop.height * 0.55;
+    const sx = rTop.left + rTop.width * 0.45, sy = rTop.top + rTop.height * 0.5;
     const dx = (rTar.left + rTar.width / 2) - (rTop.left + rTop.width / 2);
     const dy = (rTar.top + rTar.height / 2) - (rTop.top + rTop.height / 2);
     ddFinger.style.transition = "none";
@@ -500,22 +500,23 @@ function runDdDemo() {
     const t2 = setTimeout(() => {
       if (mode !== 2) return;
       ddTop.classList.add("dragging");
-      ddTop.style.transition = "transform 1.1s ease-in-out";
-      ddFinger.style.transition = "transform 1.1s ease-in-out";
+      ddTop.style.transition = "transform 1.3s ease-in-out";
+      ddFinger.style.transition = "transform 1.3s ease-in-out";
       ddTop.style.transform = `translate(${dx}px, ${dy}px)`;
       ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
-    }, 350);
+    }, 500);
     const t3 = setTimeout(() => {
       if (mode !== 2) return;
       ddTop.classList.remove("dragging");
       ddTop.style.opacity = "0";
       ddFinger.style.display = "none";
       targetCard.classList.add("ok");
-    }, 1500);
+    }, 1850);
     const t4 = setTimeout(() => {
       if (mode !== 2) return;
-      nextDdTask();
-    }, 2300);
+      if (left > 1) runDdDemo(left - 1);
+      else nextDdTask();
+    }, 2700);
     ddTimers.push(t2, t3, t4);
   }, 450);
   ddTimers.push(t1);
