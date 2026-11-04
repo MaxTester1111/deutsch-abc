@@ -44,7 +44,7 @@
     75%  { transform: translateX(6px);   box-shadow: 0 0 0 8px #e03131, 0 2px 8px #0002; }
     100% { transform: translateX(0);     box-shadow: 0 0 0 0 #e03131, 0 2px 8px #0002; }
   }
-  #right.wackeln { animation: wackeln .55s ease-in-out; }
+  #right.wackeln, #ddTop.wackeln { animation: wackeln .55s ease-in-out; }
   #fin { position: fixed; inset: 0; z-index: 10; background: #f4f1ea; display: none;
     flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
   #fin.show { display: flex; }
@@ -57,18 +57,41 @@
   #tpl, #anim { pointer-events: none; }
   body:not(.m1) #tpl, body:not(.m1) #anim, body:not(.m1) #spSound { display: none; }
   body.m1 #wordbox, body.m1 #ghost { display: none; }
-  #mode { position: fixed; top: 24px; right: 24px; z-index: 5; width: 52px; height: 52px;
+  body.m2 #main, body.m2 #bar { display: none; }
+  #dd { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: space-evenly;
+    padding: 16px; min-height: 0; position: relative; }
+  body.m2 #dd { display: flex; }
+  #ddTopWrap { display: flex; align-items: center; justify-content: center; gap: 20px; }
+  #ddTop { width: min(34vh, 22vw); height: min(34vh, 22vw); background: #fff; border-radius: 24px;
+    box-shadow: 0 4px 14px #0002; display: flex; align-items: center; justify-content: center;
+    font-size: min(22vh, 14vw); font-weight: bold; cursor: grab; position: relative; z-index: 6;
+    touch-action: none; }
+  #ddTop.dragging { box-shadow: 0 12px 28px #0004; cursor: grabbing; }
+  #ddGrid { display: grid; grid-template-columns: repeat(4, auto); gap: min(3vh, 3vw);
+    align-items: center; justify-content: center; }
+  .dd-card { width: min(34vh, 21vw); height: min(34vh, 21vw); background: #fff; border-radius: 24px;
+    box-shadow: 0 2px 8px #0002; display: flex; align-items: center; justify-content: center;
+    font-size: min(22vh, 13vw); font-weight: bold; border: 6px solid transparent;
+    transition: transform .2s, background .2s, color .2s, border-color .2s; }
+  .dd-card.ok { background: #2b8a3e; color: #fff; border-color: #2b8a3e; transform: scale(1.06); }
+  #ddFinger { position: fixed; z-index: 15; font-size: min(12vh, 12vw); line-height: 1;
+    pointer-events: none; display: none; filter: drop-shadow(0 4px 8px #0005); }
+  #mode { position: fixed; top: 24px; right: 24px; z-index: 8; width: 52px; height: 52px;
     font-size: 28px; font-weight: bold; background: #5b6f8a; }
   #menu { position: fixed; inset: 0; z-index: 20; background: #0007; display: none;
-    align-items: center; justify-content: center; gap: 28px; }
+    align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 16px; }
   #menu.show { display: flex; }
-  #menu .opt { width: min(38vh, 36vw); height: min(46vh, 42vw); border-radius: 28px; background: #fff; color: #1f3a5f;
+  #menu .opt { width: min(34vh, 28vw); height: min(42vh, 36vw); border-radius: 28px; background: #fff; color: #1f3a5f;
     flex-direction: column; gap: 10px; border: 6px solid transparent; }
   #menu .opt.cur { border-color: #2b8a3e; }
-  #menu .opt .n { font-size: min(14vh, 12vw); font-weight: bold; line-height: 1; }
-  #menu .opt .v { font-size: min(9vh, 8vw); font-weight: bold; line-height: 1.1; letter-spacing: .05em; }
+  #menu .opt .n { font-size: min(12vh, 10vw); font-weight: bold; line-height: 1; }
+  #menu .opt .v { font-size: min(7vh, 6vw); font-weight: bold; line-height: 1.1; letter-spacing: .05em; }
   @media (orientation: portrait) {
     #main { flex-direction: column; } #left { flex: 0 0 42%; }
+    #ddTop { width: min(23vh, 38vw); height: min(23vh, 38vw); font-size: min(15vh, 24vw); }
+    #ddGrid { grid-template-columns: repeat(2, auto); gap: min(2.5vh, 4vw); }
+    .dd-card { width: min(23vh, 38vw); height: min(23vh, 38vw); font-size: min(15vh, 24vw); }
+    #menu .opt { width: min(26vh, 42vw); height: min(26vh, 42vw); }
   }
 </style>
 </head>
@@ -101,14 +124,30 @@
     <div id="strip"></div>
     <button class="nav" id="next" aria-label="Weiter">▶</button>
   </div>
+  <div id="dd">
+    <div id="ddTopWrap">
+      <div id="ddTop">A</div>
+      <button class="sp" id="spDd" aria-label="Laut sprechen">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+      </button>
+    </div>
+    <div id="ddGrid">
+      <div class="dd-card">A</div>
+      <div class="dd-card">B</div>
+      <div class="dd-card">C</div>
+      <div class="dd-card">D</div>
+    </div>
+  </div>
 </div>
+<div id="ddFinger">👆</div>
 
 <div id="fin"><div class="star">⭐</div><div class="txt">Super!</div></div>
 
 <button id="mode" aria-label="Übung wählen">1</button>
 <div id="menu">
   <button class="opt" data-m="1"><div class="n">1</div><div class="v">ABC</div></button>
-  <button class="opt" data-m="2"><div class="n">2</div><div class="v">🍎🍌🚕</div></button>
+  <button class="opt" data-m="2"><div class="n">2</div><div class="v">A ➔ A</div></button>
+  <button class="opt" data-m="3"><div class="n">3</div><div class="v">🍎🍌🚕</div></button>
 </div>
 
 <script>
@@ -350,9 +389,13 @@ function go(n) {
 function setMode(m) {
   mode = m;
   document.body.classList.toggle("m1", m === 1);
+  document.body.classList.toggle("m2", m === 2);
   $("mode").textContent = m;
   document.querySelectorAll("#menu .opt").forEach(o => o.classList.toggle("cur", +o.dataset.m === m));
-  if (m === 1) go(0); else { clearTimeout(soundTimer); stopAnim(); i = 0; render(); drawTemplate(); }
+  stopDdDemo();
+  if (m === 1) { fit(); go(0); }
+  else if (m === 2) { clearTimeout(soundTimer); stopAnim(); startDdRound(); }
+  else { clearTimeout(soundTimer); stopAnim(); i = 0; fit(); render(); drawTemplate(); }
 }
 $("mode").onclick = () => $("menu").classList.add("show");
 $("menu").onclick = e => {
@@ -361,11 +404,10 @@ $("menu").onclick = e => {
   if (o && +o.dataset.m !== mode) setMode(+o.dataset.m);
 };
 $("spSound").onclick = () => { laut(DATA[i][0]); startAnim(); };
-function warn() {
-  const r = $("right");
-  r.classList.remove("wackeln");
-  void r.offsetWidth;
-  r.classList.add("wackeln");
+function warn(el = $("right")) {
+  el.classList.remove("wackeln");
+  void el.offsetWidth;
+  el.classList.add("wackeln");
 }
 function finale() {
   const f = $("fin");
@@ -382,8 +424,162 @@ function finale() {
   }
   f.classList.add("show");
   say("Super!");
-  setTimeout(() => { f.classList.remove("show"); go(0); }, 5000);
+  setTimeout(() => {
+    f.classList.remove("show");
+    setMode(mode === 1 ? 2 : mode === 2 ? 3 : 1);
+  }, 5000);
 }
+
+// ---------- Übung 2: Drag-and-Drop Großbuchstaben ----------
+const LETTERS_26 = DATA.map(d => d[0]);
+const ddTop = $("ddTop"), ddFinger = $("ddFinger");
+const ddCards = Array.from(document.querySelectorAll("#ddGrid .dd-card"));
+let ddQueue = [], ddIdx = 0, ddTarget = "A", ddBusy = false, ddDrag = null, ddTimers = [];
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let k = a.length - 1; k > 0; k--) {
+    const j = Math.floor(Math.random() * (k + 1));
+    [a[k], a[j]] = [a[j], a[k]];
+  }
+  return a;
+}
+function stopDdDemo() {
+  ddTimers.forEach(t => clearTimeout(t));
+  ddTimers = [];
+  ddFinger.style.display = "none";
+  ddFinger.style.transition = "none";
+  ddTop.style.transition = "none";
+  ddTop.style.transform = "";
+  ddTop.style.opacity = "1";
+  ddCards.forEach(c => c.classList.remove("ok"));
+  ddDrag = null;
+}
+function setupDdBoard(letter, fixedChoices) {
+  ddTarget = letter;
+  ddTop.textContent = letter;
+  ddTop.style.transition = "none";
+  ddTop.style.transform = "";
+  ddTop.style.opacity = "1";
+  ddTop.classList.remove("wackeln", "dragging");
+  const choices = fixedChoices || (() => {
+    const pool = shuffle(LETTERS_26.filter(x => x !== letter)).slice(0, 3);
+    pool.push(letter);
+    return shuffle(pool);
+  })();
+  ddCards.forEach((c, idx) => {
+    c.textContent = choices[idx];
+    c.classList.remove("ok");
+  });
+  const ts = setTimeout(() => { if (mode === 2) laut(letter); }, 300);
+  ddTimers.push(ts);
+}
+$("spDd").onclick = () => laut(ddTarget);
+function startDdRound() {
+  stopDdDemo();
+  ddQueue = LETTERS_26.slice();
+  ddIdx = 0;
+  runDdDemo();
+}
+function runDdDemo() {
+  ddBusy = true;
+  setupDdBoard("A", ["B", "A", "M", "S"]);
+  const t1 = setTimeout(() => {
+    if (mode !== 2) return;
+    const rTop = ddTop.getBoundingClientRect();
+    const targetCard = ddCards[1];
+    const rTar = targetCard.getBoundingClientRect();
+    const sx = rTop.left + rTop.width * 0.52, sy = rTop.top + rTop.height * 0.55;
+    const dx = (rTar.left + rTar.width / 2) - (rTop.left + rTop.width / 2);
+    const dy = (rTar.top + rTar.height / 2) - (rTop.top + rTop.height / 2);
+    ddFinger.style.transition = "none";
+    ddFinger.style.left = sx + "px";
+    ddFinger.style.top = sy + "px";
+    ddFinger.style.transform = "translate(0, 0) scale(1)";
+    ddFinger.style.display = "block";
+    const t2 = setTimeout(() => {
+      if (mode !== 2) return;
+      ddTop.classList.add("dragging");
+      ddTop.style.transition = "transform 1.1s ease-in-out";
+      ddFinger.style.transition = "transform 1.1s ease-in-out";
+      ddTop.style.transform = `translate(${dx}px, ${dy}px)`;
+      ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
+    }, 350);
+    const t3 = setTimeout(() => {
+      if (mode !== 2) return;
+      ddTop.classList.remove("dragging");
+      ddTop.style.opacity = "0";
+      ddFinger.style.display = "none";
+      targetCard.classList.add("ok");
+    }, 1500);
+    const t4 = setTimeout(() => {
+      if (mode !== 2) return;
+      nextDdTask();
+    }, 2300);
+    ddTimers.push(t2, t3, t4);
+  }, 450);
+  ddTimers.push(t1);
+}
+function nextDdTask() {
+  if (ddIdx >= ddQueue.length) {
+    ddBusy = true;
+    finale();
+    return;
+  }
+  ddBusy = false;
+  setupDdBoard(ddQueue[ddIdx]);
+}
+ddTop.addEventListener("pointerdown", e => {
+  if (mode !== 2 || ddBusy) return;
+  ddTop.setPointerCapture(e.pointerId);
+  ddTop.classList.remove("wackeln");
+  ddTop.classList.add("dragging");
+  ddTop.style.transition = "none";
+  ddDrag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, dx: 0, dy: 0 };
+});
+ddTop.addEventListener("pointermove", e => {
+  if (!ddDrag || e.pointerId !== ddDrag.id) return;
+  ddDrag.dx = e.clientX - ddDrag.sx;
+  ddDrag.dy = e.clientY - ddDrag.sy;
+  ddTop.style.transform = `translate(${ddDrag.dx}px, ${ddDrag.dy}px)`;
+});
+function endDdDrag(e) {
+  if (!ddDrag || e.pointerId !== ddDrag.id) return;
+  ddTop.classList.remove("dragging");
+  const rTop = ddTop.getBoundingClientRect();
+  const cx = rTop.left + rTop.width / 2, cy = rTop.top + rTop.height / 2;
+  ddDrag = null;
+  let hit = null, bestDist = Infinity;
+  for (const c of ddCards) {
+    const r = c.getBoundingClientRect();
+    const ox = Math.max(0, Math.min(rTop.right, r.right) - Math.max(rTop.left, r.left));
+    const oy = Math.max(0, Math.min(rTop.bottom, r.bottom) - Math.max(rTop.top, r.top));
+    const pointerInside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    if (pointerInside || (ox * oy > (r.width * r.height) * 0.2)) {
+      const dist = Math.hypot(cx - (r.left + r.width / 2), cy - (r.top + r.height / 2));
+      if (dist < bestDist) { bestDist = dist; hit = c; }
+    }
+  }
+  if (!hit) {
+    ddTop.style.transition = "transform .2s ease-out";
+    ddTop.style.transform = "";
+    return;
+  }
+  if (hit.textContent === ddTarget) {
+    ddBusy = true;
+    ddTop.style.opacity = "0";
+    hit.classList.add("ok");
+    ddIdx++;
+    const t = setTimeout(() => { if (mode === 2) nextDdTask(); }, 650);
+    ddTimers.push(t);
+  } else {
+    ddTop.style.transition = "none";
+    ddTop.style.transform = "";
+    warn(ddTop);
+  }
+}
+ddTop.addEventListener("pointerup", endDdDrag);
+ddTop.addEventListener("pointercancel", endDdDrag);
 $("next").onclick = () => {
   if (strokes.length === 0) warn();
   else if (i === DATA.length - 1) finale();
