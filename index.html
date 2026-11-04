@@ -74,7 +74,7 @@
     font-size: min(22vh, 13vw); font-weight: bold; border: 6px solid transparent;
     transition: transform .2s, background .2s, color .2s, border-color .2s; }
   .dd-card.ok { background: #2b8a3e; color: #fff; border-color: #2b8a3e; transform: scale(1.06); }
-  #ddFinger { position: fixed; z-index: 15; font-size: min(18vh, 18vw); line-height: 1;
+  #ddFinger { position: fixed; z-index: 15; font-size: min(24vh, 24vw); line-height: 1;
     pointer-events: none; display: none; filter: drop-shadow(0 4px 8px #0005); }
   #mode { position: fixed; top: 24px; right: 24px; z-index: 8; width: 52px; height: 52px;
     font-size: 28px; font-weight: bold; background: #5b6f8a; }
@@ -91,6 +91,7 @@
     #ddTop { width: min(23vh, 38vw); height: min(23vh, 38vw); font-size: min(15vh, 24vw); }
     #ddGrid { grid-template-columns: repeat(2, auto); gap: min(2.5vh, 4vw); }
     .dd-card { width: min(23vh, 38vw); height: min(23vh, 38vw); font-size: min(15vh, 24vw); }
+    #ddFinger { font-size: min(20vh, 34vw); }
     #menu .opt { width: min(26vh, 42vw); height: min(26vh, 42vw); }
   }
 </style>
@@ -489,7 +490,7 @@ function runDdDemo(left = 2) {
     const rTop = ddTop.getBoundingClientRect();
     const targetCard = ddCards[1];
     const rTar = targetCard.getBoundingClientRect();
-    const sx = rTop.left + rTop.width * 0.45, sy = rTop.top + rTop.height * 0.5;
+    const sx = rTop.left + rTop.width * 0.35, sy = rTop.top + rTop.height * 0.45;
     const dx = (rTar.left + rTar.width / 2) - (rTop.left + rTop.width / 2);
     const dy = (rTar.top + rTar.height / 2) - (rTop.top + rTop.height / 2);
     ddFinger.style.transition = "none";
