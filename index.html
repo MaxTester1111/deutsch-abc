@@ -55,10 +55,23 @@
   @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
   @keyframes puls { 50% { transform: scale(1.12); } }
   #tpl, #anim { pointer-events: none; }
-  body.m2 #main, body.m2 #bar { display: none; }
+  body.m2 #main, body.m2 #bar, body.m5 #main, body.m5 #bar { display: none; }
   #dd { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: space-evenly;
     padding: 16px; min-height: 0; position: relative; }
   body.m2 #dd { display: flex; }
+  #pair { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: center;
+    gap: 28px; padding: 16px; min-height: 0; position: relative; }
+  body.m5 #pair { display: flex; }
+  #pairRow { display: flex; align-items: center; justify-content: center; gap: min(6vh, 6vw); }
+  .pair-card { width: min(44vh, 36vw); height: min(44vh, 36vw); background: #fff; border-radius: 28px;
+    box-shadow: 0 4px 14px #0002; display: flex; align-items: center; justify-content: center;
+    font-size: min(28vh, 22vw); font-weight: bold; border: 6px solid transparent;
+    transition: transform .22s ease, background .22s ease, color .22s ease, border-color .22s ease;
+    position: relative; touch-action: none; }
+  #pLeft { cursor: grab; z-index: 6; }
+  #pLeft.dragging { box-shadow: 0 12px 28px #0004; cursor: grabbing; }
+  .pair-card.speak { transform: scale(1.14); border-color: #f08c00; box-shadow: 0 8px 24px #f08c0044; }
+  .pair-card.ok { background: #2b8a3e; color: #fff; border-color: #2b8a3e; transform: scale(1.07); }
   #ddTopWrap { display: flex; align-items: center; justify-content: center; gap: 20px; }
   #ddTop { width: min(34vh, 22vw); height: min(34vh, 22vw); background: #fff; border-radius: 24px;
     box-shadow: 0 4px 14px #0002; display: flex; align-items: center; justify-content: center;
@@ -79,18 +92,21 @@
   #menu { position: fixed; inset: 0; z-index: 20; background: #0007; display: none;
     align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 16px; }
   #menu.show { display: flex; }
-  #menu .opt { width: min(32vh, 21vw); height: min(40vh, 28vw); border-radius: 28px; background: #fff; color: #1f3a5f;
+  #menu .opt { width: min(28vh, 17vw); height: min(36vh, 24vw); border-radius: 28px; background: #fff; color: #1f3a5f;
     flex-direction: column; gap: 10px; border: 6px solid transparent; }
   #menu .opt.cur { border-color: #2b8a3e; }
-  #menu .opt .n { font-size: min(12vh, 10vw); font-weight: bold; line-height: 1; }
-  #menu .opt .v { font-size: min(7vh, 6vw); font-weight: bold; line-height: 1.1; letter-spacing: .05em; }
+  #menu .opt .n { font-size: min(11vh, 8vw); font-weight: bold; line-height: 1; }
+  #menu .opt .v { font-size: min(6vh, 4.8vw); font-weight: bold; line-height: 1.1; letter-spacing: .05em; }
   @media (orientation: portrait) {
     #main { flex-direction: column; } #left { flex: 0 0 42%; }
     #ddTop { width: min(23vh, 38vw); height: min(23vh, 38vw); font-size: min(15vh, 24vw); }
     #ddGrid { grid-template-columns: repeat(2, auto); gap: min(2.5vh, 4vw); }
     .dd-card { width: min(23vh, 38vw); height: min(23vh, 38vw); font-size: min(15vh, 24vw); }
+    .pair-card { width: min(34vh, 41vw); height: min(34vh, 41vw); font-size: min(22vh, 26vw); }
     #ddFinger { font-size: min(20vh, 34vw); }
-    #menu .opt { width: min(26vh, 42vw); height: min(26vh, 42vw); }
+    #menu .opt { width: min(22vh, 40vw); height: min(22vh, 40vw); }
+    #menu .opt .n { font-size: min(9vh, 12vw); }
+    #menu .opt .v { font-size: min(5vh, 7vw); }
   }
 </style>
 </head>
@@ -127,6 +143,15 @@
       <div class="dd-card">D</div>
     </div>
   </div>
+  <div id="pair">
+    <div id="pairRow">
+      <div class="pair-card" id="pLeft">A</div>
+      <div class="pair-card" id="pRight">a</div>
+    </div>
+    <button class="sp" id="spPair" aria-label="Laut sprechen">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+    </button>
+  </div>
 </div>
 <div id="ddFinger">👆</div>
 
@@ -138,6 +163,7 @@
   <button class="opt" data-m="2"><div class="n">2</div><div class="v">A ➔ A</div></button>
   <button class="opt" data-m="3"><div class="n">3</div><div class="v">abc</div></button>
   <button class="opt" data-m="4"><div class="n">4</div><div class="v">a ➔ a</div></button>
+  <button class="opt" data-m="5"><div class="n">5</div><div class="v">A ➔ a</div></button>
 </div>
 
 <script>
@@ -563,14 +589,17 @@ function setMode(m) {
   mode = m;
   document.body.classList.toggle("m1", m === 1 || m === 3);
   document.body.classList.toggle("m2", m === 2 || m === 4);
+  document.body.classList.toggle("m5", m === 5);
   $("mode").textContent = m;
   document.querySelectorAll("#menu .opt").forEach(o => o.classList.toggle("cur", +o.dataset.m === m));
   stopM1Demo();
   stopDdDemo();
+  stopPairDemo();
   clearTimeout(soundTimer);
   stopAnim();
   if (isTraceMode()) { fit(); runM1Demo(); }
-  else { startDdRound(); }
+  else if (isDdMode()) { startDdRound(); }
+  else { startPairRound(); }
 }
 $("mode").onclick = () => $("menu").classList.add("show");
 $("menu").onclick = e => {
@@ -601,7 +630,7 @@ function finale() {
   say("Super!");
   setTimeout(() => {
     f.classList.remove("show");
-    setMode(mode < 4 ? mode + 1 : 1);
+    setMode(mode < 5 ? mode + 1 : 1);
   }, 3000);
 }
 
@@ -713,6 +742,9 @@ window.addEventListener("pointerdown", e => {
   } else if (isDdMode() && ddInDemo) {
     stopDdDemo();
     nextDdTask();
+  } else if (mode === 5 && pairInDemo) {
+    stopPairDemo();
+    nextPairTask();
   }
 }, true);
 function nextDdTask() {
@@ -775,6 +807,159 @@ function endDdDrag(e) {
 }
 ddTop.addEventListener("pointerup", endDdDrag);
 ddTop.addEventListener("pointercancel", endDdDrag);
+
+// ---------- Übung 5: Groß- und Kleinbuchstaben verbinden (A ➔ a) ----------
+const pLeft = $("pLeft"), pRight = $("pRight");
+let pairIdx = 0, pairBusy = false, pairInDemo = false, pairDrag = null, pairTimers = [];
+
+function stopPairDemo() {
+  pairInDemo = false;
+  pairTimers.forEach(t => clearTimeout(t));
+  pairTimers = [];
+  ddFinger.style.display = "none";
+  ddFinger.style.transition = "none";
+  pLeft.style.transition = "";
+  pLeft.style.transform = "";
+  pLeft.classList.remove("speak", "ok", "dragging");
+  pRight.classList.remove("speak", "ok");
+  pairDrag = null;
+}
+function playPairSequence(letter, onDone) {
+  pLeft.classList.remove("speak");
+  pRight.classList.remove("speak");
+  const t1 = setTimeout(() => {
+    if (mode !== 5) return;
+    pLeft.classList.add("speak");
+    laut(letter);
+  }, 180);
+  const t2 = setTimeout(() => {
+    if (mode !== 5) return;
+    pLeft.classList.remove("speak");
+  }, 900);
+  const t3 = setTimeout(() => {
+    if (mode !== 5) return;
+    pRight.classList.add("speak");
+    laut(letter);
+  }, 1100);
+  const t4 = setTimeout(() => {
+    if (mode !== 5) return;
+    pRight.classList.remove("speak");
+    if (onDone) onDone();
+  }, 1850);
+  pairTimers.push(t1, t2, t3, t4);
+}
+function setupPairBoard(letter, onSeqDone) {
+  pLeft.textContent = letter.toUpperCase();
+  pRight.textContent = letter.toLowerCase();
+  pLeft.style.transition = "";
+  pLeft.style.transform = "";
+  pLeft.classList.remove("speak", "ok", "dragging");
+  pRight.classList.remove("speak", "ok");
+  playPairSequence(letter, onSeqDone);
+}
+$("spPair").onclick = () => {
+  if (mode === 5 && !pairInDemo) playPairSequence(LETTERS_UP[pairIdx]);
+};
+function startPairRound() {
+  stopPairDemo();
+  pairIdx = 0;
+  runPairDemo();
+}
+function runPairDemo(left = 2) {
+  pairBusy = true;
+  pairInDemo = true;
+  pairTimers.forEach(t => clearTimeout(t));
+  pairTimers = [];
+  setupPairBoard("A", () => {
+    if (mode !== 5 || !pairInDemo) return;
+    const rL = pLeft.getBoundingClientRect();
+    const rR = pRight.getBoundingClientRect();
+    const sx = rL.left + rL.width * 0.35, sy = rL.top + rL.height * 0.45;
+    const dx = (rR.left + rR.width / 2) - (rL.left + rL.width / 2);
+    const dy = (rR.top + rR.height / 2) - (rL.top + rL.height / 2);
+    ddFinger.style.transition = "none";
+    ddFinger.style.left = sx + "px";
+    ddFinger.style.top = sy + "px";
+    ddFinger.style.transform = "translate(0, 0) scale(1)";
+    ddFinger.style.display = "block";
+    const tDrag = setTimeout(() => {
+      if (mode !== 5 || !pairInDemo) return;
+      pLeft.classList.add("dragging");
+      pLeft.style.transition = "transform 1.2s ease-in-out";
+      ddFinger.style.transition = "transform 1.2s ease-in-out";
+      pLeft.style.transform = `translate(${dx}px, ${dy}px)`;
+      ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
+    }, 350);
+    const tHit = setTimeout(() => {
+      if (mode !== 5 || !pairInDemo) return;
+      pLeft.classList.remove("dragging");
+      pLeft.style.transition = "transform .2s ease, background .2s, color .2s";
+      pLeft.style.transform = "";
+      ddFinger.style.display = "none";
+      pLeft.classList.add("ok");
+      pRight.classList.add("ok");
+    }, 1600);
+    const tNext = setTimeout(() => {
+      if (mode !== 5 || !pairInDemo) return;
+      if (left > 1) runPairDemo(left - 1);
+      else { pairInDemo = false; nextPairTask(); }
+    }, 2550);
+    pairTimers.push(tDrag, tHit, tNext);
+  });
+}
+function nextPairTask() {
+  pairTimers.forEach(t => clearTimeout(t));
+  pairTimers = [];
+  if (pairIdx >= LETTERS_UP.length) {
+    pairBusy = true;
+    finale();
+    return;
+  }
+  pairBusy = false;
+  setupPairBoard(LETTERS_UP[pairIdx]);
+}
+pLeft.addEventListener("pointerdown", e => {
+  if (mode !== 5 || pairBusy) return;
+  pLeft.setPointerCapture(e.pointerId);
+  pLeft.classList.remove("speak");
+  pRight.classList.remove("speak");
+  pLeft.classList.add("dragging");
+  pLeft.style.transition = "none";
+  pairDrag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, dx: 0, dy: 0 };
+});
+pLeft.addEventListener("pointermove", e => {
+  if (!pairDrag || e.pointerId !== pairDrag.id) return;
+  pairDrag.dx = e.clientX - pairDrag.sx;
+  pairDrag.dy = e.clientY - pairDrag.sy;
+  pLeft.style.transform = `translate(${pairDrag.dx}px, ${pairDrag.dy}px)`;
+});
+function endPairDrag(e) {
+  if (!pairDrag || e.pointerId !== pairDrag.id) return;
+  pLeft.classList.remove("dragging");
+  const rL = pLeft.getBoundingClientRect();
+  const rR = pRight.getBoundingClientRect();
+  pairDrag = null;
+  const ox = Math.max(0, Math.min(rL.right, rR.right) - Math.max(rL.left, rR.left));
+  const oy = Math.max(0, Math.min(rL.bottom, rR.bottom) - Math.max(rL.top, rR.top));
+  const pointerInside = e.clientX >= rR.left && e.clientX <= rR.right && e.clientY >= rR.top && e.clientY <= rR.bottom;
+  if (pointerInside || (ox * oy > (rR.width * rR.height) * 0.2)) {
+    pairBusy = true;
+    pairTimers.forEach(t => clearTimeout(t));
+    pairTimers = [];
+    pLeft.style.transition = "transform .2s ease, background .2s, color .2s";
+    pLeft.style.transform = "";
+    pLeft.classList.add("ok");
+    pRight.classList.add("ok");
+    pairIdx++;
+    const t = setTimeout(() => { if (mode === 5) nextPairTask(); }, 800);
+    pairTimers.push(t);
+  } else {
+    pLeft.style.transition = "transform .2s ease-out";
+    pLeft.style.transform = "";
+  }
+}
+pLeft.addEventListener("pointerup", endPairDrag);
+pLeft.addEventListener("pointercancel", endPairDrag);
 $("next").onclick = () => {
   if (m1Busy) return;
   if (strokes.length === 0) warn();
