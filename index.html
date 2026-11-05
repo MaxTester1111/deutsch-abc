@@ -144,13 +144,13 @@
     </div>
   </div>
   <div id="pair">
+    <button class="sp" id="spPair" aria-label="Laut sprechen">
+      <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+    </button>
     <div id="pairRow">
       <div class="pair-card" id="pLeft">A</div>
       <div class="pair-card" id="pRight">a</div>
     </div>
-    <button class="sp" id="spPair" aria-label="Laut sprechen">
-      <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
-    </button>
   </div>
 </div>
 <div id="ddFinger">👆</div>
@@ -831,21 +831,21 @@ function playPairSequence(letter, onDone) {
     if (mode !== 5) return;
     pLeft.classList.add("speak");
     laut(letter);
-  }, 180);
+  }, 200);
   const t2 = setTimeout(() => {
     if (mode !== 5) return;
     pLeft.classList.remove("speak");
-  }, 900);
+  }, 950);
   const t3 = setTimeout(() => {
     if (mode !== 5) return;
     pRight.classList.add("speak");
     laut(letter);
-  }, 1100);
+  }, 1500);
   const t4 = setTimeout(() => {
     if (mode !== 5) return;
     pRight.classList.remove("speak");
     if (onDone) onDone();
-  }, 1850);
+  }, 2300);
   pairTimers.push(t1, t2, t3, t4);
 }
 function setupPairBoard(letter, onSeqDone) {
@@ -885,11 +885,11 @@ function runPairDemo(left = 2) {
     const tDrag = setTimeout(() => {
       if (mode !== 5 || !pairInDemo) return;
       pLeft.classList.add("dragging");
-      pLeft.style.transition = "transform 1.2s ease-in-out";
-      ddFinger.style.transition = "transform 1.2s ease-in-out";
+      pLeft.style.transition = "transform 1.8s ease-in-out";
+      ddFinger.style.transition = "transform 1.8s ease-in-out";
       pLeft.style.transform = `translate(${dx}px, ${dy}px)`;
       ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
-    }, 350);
+    }, 500);
     const tHit = setTimeout(() => {
       if (mode !== 5 || !pairInDemo) return;
       pLeft.classList.remove("dragging");
@@ -898,12 +898,12 @@ function runPairDemo(left = 2) {
       ddFinger.style.display = "none";
       pLeft.classList.add("ok");
       pRight.classList.add("ok");
-    }, 1600);
+    }, 2350);
     const tNext = setTimeout(() => {
       if (mode !== 5 || !pairInDemo) return;
       if (left > 1) runPairDemo(left - 1);
       else { pairInDemo = false; nextPairTask(); }
-    }, 2550);
+    }, 3400);
     pairTimers.push(tDrag, tHit, tNext);
   });
 }
