@@ -394,7 +394,7 @@ function setFingerPos(cx, cy, smoothMs) {
   ddFinger.style.left = x + "px";
   ddFinger.style.top = y + "px";
 }
-function runM1Demo() {
+function runM1Demo(left = 2) {
   stopM1Demo();
   m1Busy = true;
   i = 0; render(); stopAnim();
@@ -475,8 +475,8 @@ function runM1Demo() {
           const t5 = setTimeout(() => {
             if (mode !== 1 || !m1Busy) return;
             $("next").style.transform = "";
-            stopM1Demo();
-            go(0);
+            if (left > 1) runM1Demo(left - 1);
+            else { stopM1Demo(); go(0); }
           }, 3200);
           m1Timers.push(tSpDown, tSpUp, tToNext, t4, t5);
         }
@@ -586,7 +586,7 @@ function finale() {
 const LETTERS_26 = DATA.map(d => d[0]);
 const ddTop = $("ddTop"), ddFinger = $("ddFinger");
 const ddCards = Array.from(document.querySelectorAll("#ddGrid .dd-card"));
-let ddQueue = [], ddIdx = 0, ddTarget = "A", ddBusy = false, ddDrag = null, ddTimers = [];
+let ddQueue = [], ddIdx = 0, ddTarget = "A", ddBusy = false, ddInDemo = false, ddDrag = null, ddTimers = [];
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -597,6 +597,7 @@ function shuffle(arr) {
   return a;
 }
 function stopDdDemo() {
+  ddInDemo = false;
   ddTimers.forEach(t => clearTimeout(t));
   ddTimers = [];
   ddFinger.style.display = "none";
@@ -635,9 +636,10 @@ function startDdRound() {
 }
 function runDdDemo(left = 2) {
   ddBusy = true;
+  ddInDemo = true;
   setupDdBoard("A", ["B", "A", "M", "S"]);
   const t1 = setTimeout(() => {
-    if (mode !== 2) return;
+    if (mode !== 2 || !ddInDemo) return;
     const rTop = ddTop.getBoundingClientRect();
     const targetCard = ddCards[1];
     const rTar = targetCard.getBoundingClientRect();
@@ -650,7 +652,7 @@ function runDdDemo(left = 2) {
     ddFinger.style.transform = "translate(0, 0) scale(1)";
     ddFinger.style.display = "block";
     const t2 = setTimeout(() => {
-      if (mode !== 2) return;
+      if (mode !== 2 || !ddInDemo) return;
       ddTop.classList.add("dragging");
       ddTop.style.transition = "transform 1.3s ease-in-out";
       ddFinger.style.transition = "transform 1.3s ease-in-out";
@@ -658,21 +660,34 @@ function runDdDemo(left = 2) {
       ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
     }, 500);
     const t3 = setTimeout(() => {
-      if (mode !== 2) return;
+      if (mode !== 2 || !ddInDemo) return;
       ddTop.classList.remove("dragging");
       ddTop.style.opacity = "0";
       ddFinger.style.display = "none";
       targetCard.classList.add("ok");
     }, 1850);
     const t4 = setTimeout(() => {
-      if (mode !== 2) return;
+      if (mode !== 2 || !ddInDemo) return;
       if (left > 1) runDdDemo(left - 1);
-      else nextDdTask();
+      else { ddInDemo = false; nextDdTask(); }
     }, 2700);
     ddTimers.push(t2, t3, t4);
   }, 450);
   ddTimers.push(t1);
 }
+// Bricht die laufende Spielanleitung sofort ab, sobald der Bildschirm berührt wird
+window.addEventListener("pointerdown", e => {
+  if (e.target.closest("#mode, #menu")) return;
+  if (mode === 1 && m1Busy) {
+    stopM1Demo();
+    strokes = [];
+    redraw();
+    startAnim();
+  } else if (mode === 2 && ddInDemo) {
+    stopDdDemo();
+    nextDdTask();
+  }
+}, true);
 function nextDdTask() {
   if (ddIdx >= ddQueue.length) {
     ddBusy = true;
