@@ -489,14 +489,47 @@ function runM1Demo() {
 }
 
 // ---------- Bedienung ----------
-let curAudio = null;
+const sharedAudio = new Audio();
+sharedAudio.preload = "auto";
+const AudioCtx = window.AudioContext || window.webkitAudioContext;
+const actxAudio = AudioCtx ? new AudioCtx() : null;
+const audioBuffers = {};
+let curSource = null;
+
+// Alle 29 MP3-Dateien vorab laden, damit sie auf dem Handy sofort und ohne Blockade abspielen
+DATA.forEach(d => {
+  const l = d[0], url = "audio/" + encodeURIComponent(l) + ".mp3";
+  if (actxAudio && location.protocol.startsWith("http")) {
+    fetch(url).then(r => r.ok ? r.arrayBuffer() : Promise.reject())
+      .then(b => actxAudio.decodeAudioData(b))
+      .then(buf => { audioBuffers[l] = buf; })
+      .catch(() => {});
+  }
+});
+
+// Entsperrt Audio auf Mobilgeräten beim ersten Fingerkontakt
+function unlockAudio() {
+  if (actxAudio && actxAudio.state === "suspended") actxAudio.resume().catch(() => {});
+}
+window.addEventListener("pointerdown", unlockAudio, { passive: true });
+
 // Spielt audio/<Buchstabe>.mp3 ab (z. B. audio/M.mp3); fehlt die Datei, bleibt es still
 function laut(l) {
-  if (curAudio) { curAudio.pause(); curAudio = null; }
+  if (curSource) { try { curSource.stop(); } catch (_) {} curSource = null; }
+  sharedAudio.pause();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
-  const a = new Audio("audio/" + encodeURIComponent(l) + ".mp3");
-  curAudio = a;
-  a.play().catch(() => {});
+  if (actxAudio && audioBuffers[l]) {
+    if (actxAudio.state === "suspended") actxAudio.resume().catch(() => {});
+    const src = actxAudio.createBufferSource();
+    src.buffer = audioBuffers[l];
+    src.connect(actxAudio.destination);
+    src.start(0);
+    curSource = src;
+    return;
+  }
+  sharedAudio.src = "audio/" + encodeURIComponent(l) + ".mp3";
+  sharedAudio.currentTime = 0;
+  sharedAudio.play().catch(() => {});
 }
 let soundTimer = null;
 function go(n) {
@@ -590,7 +623,7 @@ function setupDdBoard(letter, fixedChoices) {
     c.textContent = choices[idx];
     c.classList.remove("ok");
   });
-  const ts = setTimeout(() => { if (mode === 2) laut(letter); }, 300);
+  const ts = setTimeout(() => { if (mode === 2) laut(letter); }, 150);
   ddTimers.push(ts);
 }
 $("spDd").onclick = () => laut(ddTarget);
@@ -690,7 +723,7 @@ function endDdDrag(e) {
     ddTop.style.opacity = "0";
     hit.classList.add("ok");
     ddIdx++;
-    const t = setTimeout(() => { if (mode === 2) nextDdTask(); }, 650);
+    const t = setTimeout(() => { if (mode === 2) nextDdTask(); }, 550);
     ddTimers.push(t);
   } else {
     ddTop.style.transition = "none";
