@@ -747,23 +747,23 @@ function runDdDemo(left = 2) {
     const t2 = setTimeout(() => {
       if (!isDdMode() || !ddInDemo) return;
       ddTop.classList.add("dragging");
-      ddTop.style.transition = "transform 1.3s ease-in-out";
-      ddFinger.style.transition = "transform 1.3s ease-in-out";
+      ddTop.style.transition = "transform 2.0s ease-in-out";
+      ddFinger.style.transition = "transform 2.0s ease-in-out";
       ddTop.style.transform = `translate(${dx}px, ${dy}px)`;
       ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
-    }, 500);
+    }, 550);
     const t3 = setTimeout(() => {
       if (!isDdMode() || !ddInDemo) return;
       ddTop.classList.remove("dragging");
       ddTop.style.opacity = "0";
       ddFinger.style.display = "none";
       targetCard.classList.add("ok");
-    }, 1850);
+    }, 2600);
     const t4 = setTimeout(() => {
       if (!isDdMode() || !ddInDemo) return;
       if (left > 1) runDdDemo(left - 1);
       else { ddInDemo = false; nextDdTask(); }
-    }, 2700);
+    }, 3550);
     ddTimers.push(t2, t3, t4);
   }, 450);
   ddTimers.push(t1);
