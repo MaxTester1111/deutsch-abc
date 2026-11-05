@@ -55,8 +55,6 @@
   @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
   @keyframes puls { 50% { transform: scale(1.12); } }
   #tpl, #anim { pointer-events: none; }
-  body:not(.m1) #tpl, body:not(.m1) #anim, body:not(.m1) #spSound { display: none; }
-  body.m1 #wordbox, body.m1 #ghost { display: none; }
   body.m2 #main, body.m2 #bar { display: none; }
   #dd { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: space-evenly;
     padding: 16px; min-height: 0; position: relative; }
@@ -81,7 +79,7 @@
   #menu { position: fixed; inset: 0; z-index: 20; background: #0007; display: none;
     align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 16px; }
   #menu.show { display: flex; }
-  #menu .opt { width: min(34vh, 28vw); height: min(42vh, 36vw); border-radius: 28px; background: #fff; color: #1f3a5f;
+  #menu .opt { width: min(32vh, 21vw); height: min(40vh, 28vw); border-radius: 28px; background: #fff; color: #1f3a5f;
     flex-direction: column; gap: 10px; border: 6px solid transparent; }
   #menu .opt.cur { border-color: #2b8a3e; }
   #menu .opt .n { font-size: min(12vh, 10vw); font-weight: bold; line-height: 1; }
@@ -104,18 +102,8 @@
       <button class="sp" id="spSound" aria-label="Laut sprechen">
         <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
       </button>
-      <div id="wordbox">
-        <div id="emoji"></div>
-        <div class="row" style="justify-content:center">
-          <div id="word"></div>
-          <button class="sp" id="spWord" aria-label="Wort sprechen">
-            <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
-          </button>
-        </div>
-      </div>
     </div>
     <div id="right">
-      <div id="ghost"></div>
       <canvas id="tpl"></canvas>
       <canvas id="anim"></canvas>
       <canvas id="cv"></canvas>
@@ -148,7 +136,8 @@
 <div id="menu">
   <button class="opt" data-m="1"><div class="n">1</div><div class="v">ABC</div></button>
   <button class="opt" data-m="2"><div class="n">2</div><div class="v">A ➔ A</div></button>
-  <button class="opt" data-m="3"><div class="n">3</div><div class="v">🍎🍌🚕</div></button>
+  <button class="opt" data-m="3"><div class="n">3</div><div class="v">abc</div></button>
+  <button class="opt" data-m="4"><div class="n">4</div><div class="v">a ➔ a</div></button>
 </div>
 
 <script>
@@ -218,6 +207,43 @@ const GLYPH = {
   Z: [[[8,0],[72,0],[8,100],[72,100]]],
   Ä: uml(G_A), Ö: uml(G_O), Ü: uml(G_U)
 };
+const GL_A = [arc(36, 65, 26, 35, -35, -325), [[62, 30], [62, 100]]];
+const GL_O = [arc(40, 65, 28, 35, -90, -450)];
+const GL_U = [[[14, 30], [14, 72]].concat(arc(40, 72, 26, 28, 180, 0), [[66, 30]]), [[66, 30], [66, 100]]];
+function umlLow(base) { return base.concat([[[26, 10], [26, 12]], [[54, 10], [54, 12]]]); }
+const GLYPH_LOW = {
+  A: GL_A,
+  B: [[[14, 0], [14, 100]], arc(40, 65, 26, 35, -145, 145)],
+  C: [arc(44, 65, 28, 35, -40, -320)],
+  D: [arc(38, 65, 26, 35, -35, -325), [[64, 0], [64, 100]]],
+  E: [[[14, 63], [66, 63]].concat(arc(40, 65, 26, 35, 0, -315))],
+  F: [arc(48, 22, 18, 22, -20, -180).concat([[30, 22], [30, 100]]), [[14, 48], [54, 48]]],
+  G: [arc(38, 52, 24, 24, -35, -325), [[62, 28], [62, 78]].concat(arc(38, 78, 24, 22, 0, 155))],
+  H: [[[14, 0], [14, 100]], arc(40, 58, 26, 28, -180, 0).concat([[66, 58], [66, 100]])],
+  I: [[[40, 32], [40, 100]], [[40, 10], [40, 12]]],
+  J: [[[48, 30], [48, 80]].concat(arc(30, 80, 18, 20, 0, 150)), [[48, 10], [48, 12]]],
+  K: [[[16, 0], [16, 100]], [[16, 66], [62, 32]], [[16, 66], [64, 100]]],
+  L: [[[40, 0], [40, 100]]],
+  M: [[[8, 30], [8, 100]], arc(24, 55, 16, 25, -180, 0).concat([[40, 55], [40, 100]]), arc(56, 55, 16, 25, -180, 0).concat([[72, 55], [72, 100]])],
+  N: [[[14, 30], [14, 100]], arc(40, 58, 26, 28, -180, 0).concat([[66, 58], [66, 100]])],
+  O: GL_O,
+  P: [[[14, 28], [14, 100]], arc(40, 52, 26, 24, -145, 145)],
+  Q: [arc(38, 52, 24, 24, -35, -325), [[62, 28], [62, 100]]],
+  R: [[[22, 30], [22, 100]], arc(44, 52, 22, 22, -180, -20)],
+  S: [arc(40, 47.5, 22, 17.5, -30, -270).concat(arc(40, 82.5, 24, 17.5, -90, 150).slice(1))],
+  T: [[[40, 6], [40, 100]], [[18, 34], [62, 34]]],
+  U: GL_U,
+  V: [[[12, 30], [40, 100], [68, 30]]],
+  W: [[[4, 30], [22, 100], [40, 48], [58, 100], [76, 30]]],
+  X: [[[14, 30], [66, 100]], [[66, 30], [14, 100]]],
+  Y: [[[14, 28], [40, 68]], [[66, 28], [20, 100]]],
+  Z: [[[14, 30], [66, 30], [14, 100], [66, 100]]],
+  Ä: umlLow(GL_A), Ö: umlLow(GL_O), Ü: umlLow(GL_U)
+};
+function curGlyph(k = i) {
+  const l = DATA[k][0];
+  return (mode === 3 ? GLYPH_LOW : GLYPH)[l];
+}
 const tpl = $("tpl"), an = $("anim"), tctx = tpl.getContext("2d"), actx = an.getContext("2d");
 function geom() {
   const W = cv.width, H = cv.height, u = Math.min(H * 0.78 / 100, W * 0.8 / 80);
@@ -226,12 +252,12 @@ function geom() {
 function toPx(s, g) { return s.map(p => [g.ox + p[0] * g.u, g.oy + p[1] * g.u]); }
 function drawTemplate() {
   tctx.clearRect(0, 0, tpl.width, tpl.height);
-  if (mode !== 1) return;
+  if (mode !== 1 && mode !== 3) return;
   const g = geom();
   tctx.lineCap = tctx.lineJoin = "round";
   tctx.strokeStyle = "#c9d3e0";
   tctx.lineWidth = tpl.height * 0.075;
-  for (const s of GLYPH[DATA[i][0]]) {
+  for (const s of curGlyph()) {
     const p = toPx(s, g);
     tctx.beginPath();
     p.forEach((q, k) => k ? tctx.lineTo(q[0], q[1]) : tctx.moveTo(q[0], q[1]));
@@ -283,9 +309,9 @@ function drawPart(pts, len, prog, head, num, many) {
 }
 function startAnim() {
   stopAnim();
-  if (mode !== 1) return;
+  if (mode !== 1 && mode !== 3) return;
   const g = geom();
-  const st = GLYPH[DATA[i][0]].map(s => toPx(s, g));
+  const st = curGlyph().map(s => toPx(s, g));
   const lens = st.map(s => { let L = 0; for (let k = 1; k < s.length; k++) L += Math.hypot(s[k][0] - s[k-1][0], s[k][1] - s[k-1][1]); return L; });
   const durs = lens.map(L => 900 + L * 2.4), gap = 450, hold = 1700;
   const total = durs.reduce((a, d) => a + d + gap, 0) + hold;
@@ -323,24 +349,16 @@ function say(text) {
 }
 
 // ---------- Anzeige ----------
-function letterShown(l) { return upper ? l.toUpperCase() : (l === "ß" ? "ß" : l.toLowerCase()); }
 function render() {
-  const [l, name, word, emoji] = DATA[i];
-  $("big").textContent = l === "ß" ? "ß" : l.toUpperCase();
-  $("emoji").textContent = emoji;
-  const re = new RegExp(l, "i");
-  $("word").innerHTML = word.replace(re, m => "<b>" + m + "</b>");
-  updateGhost();
+  const l = DATA[i][0];
+  $("big").textContent = mode === 3 ? l.toLowerCase() : l.toUpperCase();
   strokes = []; redraw();
   drawTemplate(); startAnim();
-  document.querySelectorAll("#strip button").forEach((b, k) => b.classList.toggle("cur", k === i));
+  document.querySelectorAll("#strip button").forEach((b, k) => {
+    b.textContent = mode === 3 ? DATA[k][0].toLowerCase() : DATA[k][0];
+    b.classList.toggle("cur", k === i);
+  });
   const c = document.querySelector("#strip button.cur"); if (c) c.scrollIntoView({inline: "center", block: "nearest"});
-}
-function updateGhost() {
-  const g = $("ghost");
-  g.textContent = letterShown(DATA[i][0]);
-  const r = $("right").getBoundingClientRect();
-  g.style.fontSize = Math.min(r.height * 0.95, r.width * 0.9) + "px";
 }
 
 // ---------- Whiteboard ----------
@@ -348,7 +366,7 @@ function fit() {
   const r = cv.getBoundingClientRect(), d = window.devicePixelRatio || 1;
   cv.width = tpl.width = an.width = r.width * d;
   cv.height = tpl.height = an.height = r.height * d;
-  updateGhost(); redraw(); drawTemplate(); startAnim();
+  redraw(); drawTemplate(); startAnim();
 }
 function redraw() {
   const w = cv.width, h = cv.height;
@@ -371,8 +389,10 @@ cv.addEventListener("pointerdown", e => { if (m1Busy) return; cv.setPointerCaptu
 cv.addEventListener("pointermove", e => { if (!cur) return; cur.push(pt(e)); redraw(); });
 ["pointerup", "pointercancel"].forEach(t => cv.addEventListener(t, () => { cur = null; }));
 
-// ---------- Übung 1: Spielanleitung (Finger-Visualisierung) ----------
+// ---------- Übung 1 & 3: Spielanleitung (Finger-Visualisierung) ----------
 let m1Busy = false, m1Timers = [], m1Raf = 0;
+function isTraceMode() { return mode === 1 || mode === 3; }
+function isDdMode() { return mode === 2 || mode === 4; }
 function stopM1Demo() {
   m1Busy = false;
   m1Timers.forEach(t => clearTimeout(t));
@@ -399,25 +419,26 @@ function runM1Demo(left = 2) {
   m1Busy = true;
   i = 0; render(); stopAnim();
   const t1 = setTimeout(() => {
-    if (mode !== 1 || !m1Busy) return;
+    if (!isTraceMode() || !m1Busy) return;
     const g = geom();
-    const st0 = toPx(GLYPH["A"][0], g)[0];
+    const glyph0 = curGlyph(0);
+    const st0 = toPx(glyph0[0], g)[0];
     const rCv = cv.getBoundingClientRect();
     setFingerPos(rCv.left + rCv.width * 0.5, rCv.bottom - 20, 0);
     ddFinger.style.transform = "scale(1)";
     const tGlide = setTimeout(() => {
-      if (mode !== 1 || !m1Busy) return;
+      if (!isTraceMode() || !m1Busy) return;
       setFingerPos(rCv.left + (st0[0] / cv.width) * rCv.width, rCv.top + (st0[1] / cv.height) * rCv.height, 800);
     }, 80);
     const tTrace = setTimeout(() => {
-      if (mode !== 1 || !m1Busy) return;
+      if (!isTraceMode() || !m1Busy) return;
       startAnim();
-      const st = GLYPH["A"].map(s => toPx(s, g));
+      const st = glyph0.map(s => toPx(s, g));
       const lens = st.map(s => { let L = 0; for (let k = 1; k < s.length; k++) L += Math.hypot(s[k][0] - s[k-1][0], s[k][1] - s[k-1][1]); return L; });
       const durs = lens.map(L => 900 + L * 2.4), gap = 450, lag = 260;
       const tStart = performance.now();
       function step(now) {
-        if (mode !== 1 || !m1Busy) return;
+        if (!isTraceMode() || !m1Busy) return;
         const elapsed = now - tStart - lag;
         const r = cv.getBoundingClientRect();
         strokes = [];
@@ -452,28 +473,28 @@ function runM1Demo(left = 2) {
           const rSp = $("spSound").getBoundingClientRect();
           setFingerPos(rSp.left + rSp.width / 2, rSp.top + rSp.height / 2, 850);
           const tSpDown = setTimeout(() => {
-            if (mode !== 1 || !m1Busy) return;
+            if (!isTraceMode() || !m1Busy) return;
             ddFinger.style.transform = "scale(0.84)";
             $("spSound").style.transform = "scale(0.84)";
             laut("A");
           }, 1150);
           const tSpUp = setTimeout(() => {
-            if (mode !== 1 || !m1Busy) return;
+            if (!isTraceMode() || !m1Busy) return;
             ddFinger.style.transform = "scale(1)";
             $("spSound").style.transform = "";
           }, 1550);
           const tToNext = setTimeout(() => {
-            if (mode !== 1 || !m1Busy) return;
+            if (!isTraceMode() || !m1Busy) return;
             const rNext = $("next").getBoundingClientRect();
             setFingerPos(rNext.left + rNext.width / 2, rNext.top + rNext.height / 2, 800);
           }, 1850);
           const t4 = setTimeout(() => {
-            if (mode !== 1 || !m1Busy) return;
+            if (!isTraceMode() || !m1Busy) return;
             ddFinger.style.transform = "scale(0.84)";
             $("next").style.transform = "scale(0.84)";
           }, 2800);
           const t5 = setTimeout(() => {
-            if (mode !== 1 || !m1Busy) return;
+            if (!isTraceMode() || !m1Busy) return;
             $("next").style.transform = "";
             if (left > 1) runM1Demo(left - 1);
             else { stopM1Demo(); go(0); }
@@ -515,19 +536,20 @@ window.addEventListener("pointerdown", unlockAudio, { passive: true });
 
 // Spielt audio/<Buchstabe>.mp3 ab (z. B. audio/M.mp3); fehlt die Datei, bleibt es still
 function laut(l) {
+  const key = l.toUpperCase();
   if (curSource) { try { curSource.stop(); } catch (_) {} curSource = null; }
   sharedAudio.pause();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
-  if (actxAudio && audioBuffers[l]) {
+  if (actxAudio && audioBuffers[key]) {
     if (actxAudio.state === "suspended") actxAudio.resume().catch(() => {});
     const src = actxAudio.createBufferSource();
-    src.buffer = audioBuffers[l];
+    src.buffer = audioBuffers[key];
     src.connect(actxAudio.destination);
     src.start(0);
     curSource = src;
     return;
   }
-  sharedAudio.src = "audio/" + encodeURIComponent(l) + ".mp3";
+  sharedAudio.src = "audio/" + encodeURIComponent(key) + ".mp3";
   sharedAudio.currentTime = 0;
   sharedAudio.play().catch(() => {});
 }
@@ -535,19 +557,20 @@ let soundTimer = null;
 function go(n) {
   i = (n + DATA.length) % DATA.length; render();
   clearTimeout(soundTimer);
-  if (mode === 1) soundTimer = setTimeout(() => laut(DATA[i][0]), 400);
+  if (isTraceMode()) soundTimer = setTimeout(() => laut(DATA[i][0]), 400);
 }
 function setMode(m) {
   mode = m;
-  document.body.classList.toggle("m1", m === 1);
-  document.body.classList.toggle("m2", m === 2);
+  document.body.classList.toggle("m1", m === 1 || m === 3);
+  document.body.classList.toggle("m2", m === 2 || m === 4);
   $("mode").textContent = m;
   document.querySelectorAll("#menu .opt").forEach(o => o.classList.toggle("cur", +o.dataset.m === m));
   stopM1Demo();
   stopDdDemo();
-  if (m === 1) { fit(); runM1Demo(); }
-  else if (m === 2) { clearTimeout(soundTimer); stopAnim(); startDdRound(); }
-  else { clearTimeout(soundTimer); stopAnim(); i = 0; fit(); render(); drawTemplate(); }
+  clearTimeout(soundTimer);
+  stopAnim();
+  if (isTraceMode()) { fit(); runM1Demo(); }
+  else { startDdRound(); }
 }
 $("mode").onclick = () => $("menu").classList.add("show");
 $("menu").onclick = e => {
@@ -578,12 +601,13 @@ function finale() {
   say("Super!");
   setTimeout(() => {
     f.classList.remove("show");
-    setMode(mode === 1 ? 2 : mode === 2 ? 3 : 1);
+    setMode(mode < 4 ? mode + 1 : 1);
   }, 3000);
 }
 
-// ---------- Übung 2: Drag-and-Drop Großbuchstaben ----------
-const LETTERS_26 = DATA.map(d => d[0]);
+// ---------- Übung 2 & 4: Drag-and-Drop (Groß- und Kleinbuchstaben) ----------
+const LETTERS_UP = DATA.map(d => d[0]);
+const LETTERS_LOW = DATA.map(d => d[0].toLowerCase());
 const ddTop = $("ddTop"), ddFinger = $("ddFinger");
 const ddCards = Array.from(document.querySelectorAll("#ddGrid .dd-card"));
 let ddQueue = [], ddIdx = 0, ddTarget = "A", ddBusy = false, ddInDemo = false, ddDrag = null, ddTimers = [];
@@ -608,6 +632,7 @@ function stopDdDemo() {
   ddCards.forEach(c => c.classList.remove("ok"));
   ddDrag = null;
 }
+function ddPool() { return mode === 4 ? LETTERS_LOW : LETTERS_UP; }
 function setupDdBoard(letter, fixedChoices) {
   ddTarget = letter;
   ddTop.textContent = letter;
@@ -615,8 +640,9 @@ function setupDdBoard(letter, fixedChoices) {
   ddTop.style.transform = "";
   ddTop.style.opacity = "1";
   ddTop.classList.remove("wackeln", "dragging");
+  const list = ddPool();
   const choices = fixedChoices || (() => {
-    const pool = shuffle(LETTERS_26.filter(x => x !== letter)).slice(0, 3);
+    const pool = shuffle(list.filter(x => x !== letter)).slice(0, 3);
     pool.push(letter);
     return shuffle(pool);
   })();
@@ -624,22 +650,23 @@ function setupDdBoard(letter, fixedChoices) {
     c.textContent = choices[idx];
     c.classList.remove("ok");
   });
-  const ts = setTimeout(() => { if (mode === 2) laut(letter); }, 150);
+  const ts = setTimeout(() => { if (isDdMode()) laut(letter); }, 150);
   ddTimers.push(ts);
 }
 $("spDd").onclick = () => laut(ddTarget);
 function startDdRound() {
   stopDdDemo();
-  ddQueue = LETTERS_26.slice();
+  ddQueue = ddPool().slice();
   ddIdx = 0;
   runDdDemo();
 }
 function runDdDemo(left = 2) {
   ddBusy = true;
   ddInDemo = true;
-  setupDdBoard("A", ["B", "A", "M", "S"]);
+  if (mode === 4) setupDdBoard("a", ["b", "a", "m", "s"]);
+  else setupDdBoard("A", ["B", "A", "M", "S"]);
   const t1 = setTimeout(() => {
-    if (mode !== 2 || !ddInDemo) return;
+    if (!isDdMode() || !ddInDemo) return;
     const rTop = ddTop.getBoundingClientRect();
     const targetCard = ddCards[1];
     const rTar = targetCard.getBoundingClientRect();
@@ -652,7 +679,7 @@ function runDdDemo(left = 2) {
     ddFinger.style.transform = "translate(0, 0) scale(1)";
     ddFinger.style.display = "block";
     const t2 = setTimeout(() => {
-      if (mode !== 2 || !ddInDemo) return;
+      if (!isDdMode() || !ddInDemo) return;
       ddTop.classList.add("dragging");
       ddTop.style.transition = "transform 1.3s ease-in-out";
       ddFinger.style.transition = "transform 1.3s ease-in-out";
@@ -660,14 +687,14 @@ function runDdDemo(left = 2) {
       ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
     }, 500);
     const t3 = setTimeout(() => {
-      if (mode !== 2 || !ddInDemo) return;
+      if (!isDdMode() || !ddInDemo) return;
       ddTop.classList.remove("dragging");
       ddTop.style.opacity = "0";
       ddFinger.style.display = "none";
       targetCard.classList.add("ok");
     }, 1850);
     const t4 = setTimeout(() => {
-      if (mode !== 2 || !ddInDemo) return;
+      if (!isDdMode() || !ddInDemo) return;
       if (left > 1) runDdDemo(left - 1);
       else { ddInDemo = false; nextDdTask(); }
     }, 2700);
@@ -678,12 +705,12 @@ function runDdDemo(left = 2) {
 // Bricht die laufende Spielanleitung sofort ab, sobald der Bildschirm berührt wird
 window.addEventListener("pointerdown", e => {
   if (e.target.closest("#mode, #menu")) return;
-  if (mode === 1 && m1Busy) {
+  if (isTraceMode() && m1Busy) {
     stopM1Demo();
     strokes = [];
     redraw();
     startAnim();
-  } else if (mode === 2 && ddInDemo) {
+  } else if (isDdMode() && ddInDemo) {
     stopDdDemo();
     nextDdTask();
   }
@@ -698,7 +725,7 @@ function nextDdTask() {
   setupDdBoard(ddQueue[ddIdx]);
 }
 ddTop.addEventListener("pointerdown", e => {
-  if (mode !== 2 || ddBusy) return;
+  if (!isDdMode() || ddBusy) return;
   ddTop.setPointerCapture(e.pointerId);
   ddTop.classList.remove("wackeln");
   ddTop.classList.add("dragging");
@@ -738,7 +765,7 @@ function endDdDrag(e) {
     ddTop.style.opacity = "0";
     hit.classList.add("ok");
     ddIdx++;
-    const t = setTimeout(() => { if (mode === 2) nextDdTask(); }, 550);
+    const t = setTimeout(() => { if (isDdMode()) nextDdTask(); }, 550);
     ddTimers.push(t);
   } else {
     ddTop.style.transition = "none";
@@ -754,7 +781,6 @@ $("next").onclick = () => {
   else if (i === DATA.length - 1) finale();
   else go(i + 1);
 };
-$("spWord").onclick = () => say(DATA[i][2]);
 
 DATA.forEach((d, k) => {
   const b = document.createElement("button");
