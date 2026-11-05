@@ -400,33 +400,18 @@ function runM1Demo() {
   i = 0; render(); stopAnim();
   const t1 = setTimeout(() => {
     if (mode !== 1 || !m1Busy) return;
-    const rLeft = $("left").getBoundingClientRect();
-    const rSp = $("spSound").getBoundingClientRect();
-    setFingerPos(rLeft.left + rLeft.width * 0.5, rLeft.bottom - 20, 0);
+    const g = geom();
+    const st0 = toPx(GLYPH["A"][0], g)[0];
+    const rCv = cv.getBoundingClientRect();
+    setFingerPos(rCv.left + rCv.width * 0.5, rCv.bottom - 20, 0);
     ddFinger.style.transform = "scale(1)";
     const tGlide = setTimeout(() => {
       if (mode !== 1 || !m1Busy) return;
-      setFingerPos(rSp.left + rSp.width / 2, rSp.top + rSp.height / 2, 850);
+      setFingerPos(rCv.left + (st0[0] / cv.width) * rCv.width, rCv.top + (st0[1] / cv.height) * rCv.height, 800);
     }, 80);
-    const t2 = setTimeout(() => {
-      if (mode !== 1 || !m1Busy) return;
-      ddFinger.style.transform = "scale(0.84)";
-      $("spSound").style.transform = "scale(0.84)";
-      laut("A");
-    }, 1250);
-    const t2b = setTimeout(() => {
-      if (mode !== 1 || !m1Busy) return;
-      ddFinger.style.transform = "scale(1)";
-      $("spSound").style.transform = "";
-      const g = geom();
-      const st0 = toPx(GLYPH["A"][0], g)[0];
-      const rCv = cv.getBoundingClientRect();
-      setFingerPos(rCv.left + (st0[0] / cv.width) * rCv.width, rCv.top + (st0[1] / cv.height) * rCv.height, 750);
-    }, 1650);
-    const t3 = setTimeout(() => {
+    const tTrace = setTimeout(() => {
       if (mode !== 1 || !m1Busy) return;
       startAnim();
-      const g = geom();
       const st = GLYPH["A"].map(s => toPx(s, g));
       const lens = st.map(s => { let L = 0; for (let k = 1; k < s.length; k++) L += Math.hypot(s[k][0] - s[k-1][0], s[k][1] - s[k-1][1]); return L; });
       const durs = lens.map(L => 900 + L * 2.4), gap = 450, lag = 260;
@@ -464,26 +449,42 @@ function runM1Demo() {
         if (elapsed < totalTrace) {
           m1Raf = requestAnimationFrame(step);
         } else {
-          const rNext = $("next").getBoundingClientRect();
-          setFingerPos(rNext.left + rNext.width / 2, rNext.top + rNext.height / 2, 700);
+          const rSp = $("spSound").getBoundingClientRect();
+          setFingerPos(rSp.left + rSp.width / 2, rSp.top + rSp.height / 2, 850);
+          const tSpDown = setTimeout(() => {
+            if (mode !== 1 || !m1Busy) return;
+            ddFinger.style.transform = "scale(0.84)";
+            $("spSound").style.transform = "scale(0.84)";
+            laut("A");
+          }, 1150);
+          const tSpUp = setTimeout(() => {
+            if (mode !== 1 || !m1Busy) return;
+            ddFinger.style.transform = "scale(1)";
+            $("spSound").style.transform = "";
+          }, 1550);
+          const tToNext = setTimeout(() => {
+            if (mode !== 1 || !m1Busy) return;
+            const rNext = $("next").getBoundingClientRect();
+            setFingerPos(rNext.left + rNext.width / 2, rNext.top + rNext.height / 2, 800);
+          }, 1850);
           const t4 = setTimeout(() => {
             if (mode !== 1 || !m1Busy) return;
             ddFinger.style.transform = "scale(0.84)";
             $("next").style.transform = "scale(0.84)";
-          }, 850);
+          }, 2800);
           const t5 = setTimeout(() => {
             if (mode !== 1 || !m1Busy) return;
             $("next").style.transform = "";
             stopM1Demo();
             go(0);
-          }, 1250);
-          m1Timers.push(t4, t5);
+          }, 3200);
+          m1Timers.push(tSpDown, tSpUp, tToNext, t4, t5);
         }
       }
       m1Raf = requestAnimationFrame(step);
-    }, 2400);
-    m1Timers.push(tGlide, t2, t2b, t3);
-  }, 600);
+    }, 950);
+    m1Timers.push(tGlide, tTrace);
+  }, 500);
   m1Timers.push(t1);
 }
 
