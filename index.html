@@ -1065,23 +1065,23 @@ function runM6Demo(left = 2) {
     const t2 = setTimeout(() => {
       if (mode !== 6 || !m6InDemo) return;
       m6Left.classList.add("dragging");
-      m6Left.style.transition = "transform 1.6s ease-in-out";
-      ddFinger.style.transition = "transform 1.6s ease-in-out";
+      m6Left.style.transition = "transform 2.1s ease-in-out";
+      ddFinger.style.transition = "transform 2.1s ease-in-out";
       m6Left.style.transform = `translate(${dx}px, ${dy}px)`;
       ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
-    }, 500);
+    }, 550);
     const t3 = setTimeout(() => {
       if (mode !== 6 || !m6InDemo) return;
       m6Left.classList.remove("dragging");
       m6Left.style.opacity = "0";
       ddFinger.style.display = "none";
       targetCard.classList.add("ok");
-    }, 2150);
+    }, 2700);
     const t4 = setTimeout(() => {
       if (mode !== 6 || !m6InDemo) return;
       if (left > 1) runM6Demo(left - 1);
       else { m6InDemo = false; nextM6Task(); }
-    }, 3100);
+    }, 3650);
     m6Timers.push(t2, t3, t4);
   }, 450);
   m6Timers.push(t1);
