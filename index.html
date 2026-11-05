@@ -44,7 +44,7 @@
     75%  { transform: translateX(6px);   box-shadow: 0 0 0 8px #e03131, 0 2px 8px #0002; }
     100% { transform: translateX(0);     box-shadow: 0 0 0 0 #e03131, 0 2px 8px #0002; }
   }
-  #right.wackeln, #ddTop.wackeln { animation: wackeln .55s ease-in-out; }
+  #right.wackeln, #ddTop.wackeln, #m6Left.wackeln { animation: wackeln .55s ease-in-out; }
   #fin { position: fixed; inset: 0; z-index: 10; background: #f4f1ea; display: none;
     flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
   #fin.show { display: flex; }
@@ -55,7 +55,7 @@
   @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
   @keyframes puls { 50% { transform: scale(1.12); } }
   #tpl, #anim { pointer-events: none; }
-  body.m2 #main, body.m2 #bar, body.m5 #main, body.m5 #bar { display: none; }
+  body.m2 #main, body.m2 #bar, body.m5 #main, body.m5 #bar, body.m6 #main, body.m6 #bar { display: none; }
   #dd { flex: 1; display: none; flex-direction: column; align-items: center; justify-content: space-evenly;
     padding: 16px; min-height: 0; position: relative; }
   body.m2 #dd { display: flex; }
@@ -72,6 +72,23 @@
   #pLeft.dragging { box-shadow: 0 12px 28px #0004; cursor: grabbing; }
   .pair-card.speak { transform: scale(1.14); border-color: #f08c00; box-shadow: 0 8px 24px #f08c0044; }
   .pair-card.ok { background: #2b8a3e; color: #fff; border-color: #2b8a3e; transform: scale(1.07); }
+  #m6 { flex: 1; display: none; flex-direction: row; align-items: stretch; justify-content: space-around;
+    padding: 16px 28px; min-height: 0; position: relative; }
+  body.m6 #m6 { display: flex; }
+  #m6LeftWrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    gap: 18px; padding-top: 2vh; }
+  #m6Left { width: min(34vh, 24vw); height: min(34vh, 24vw); background: #fff; border-radius: 24px;
+    box-shadow: 0 4px 14px #0002; display: flex; align-items: center; justify-content: center;
+    font-size: min(22vh, 15vw); font-weight: bold; cursor: grab; position: relative; z-index: 6;
+    touch-action: none; }
+  #m6Left.dragging { box-shadow: 0 12px 28px #0004; cursor: grabbing; }
+  #m6Col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+    gap: min(2.2vh, 2.2vw); padding-top: 7vh; padding-bottom: 1vh; }
+  .m6-card { width: min(26vh, 22vw); height: min(26vh, 22vw); background: #fff; border-radius: 24px;
+    box-shadow: 0 2px 8px #0002; display: flex; align-items: center; justify-content: center;
+    font-size: min(17vh, 14vw); font-weight: bold; border: 6px solid transparent;
+    transition: transform .2s, background .2s, color .2s, border-color .2s; }
+  .m6-card.ok { background: #2b8a3e; color: #fff; border-color: #2b8a3e; transform: scale(1.06); }
   #ddTopWrap { display: flex; align-items: center; justify-content: center; gap: 20px; }
   #ddTop { width: min(34vh, 22vw); height: min(34vh, 22vw); background: #fff; border-radius: 24px;
     box-shadow: 0 4px 14px #0002; display: flex; align-items: center; justify-content: center;
@@ -90,23 +107,26 @@
   #mode { position: fixed; top: 24px; right: 24px; z-index: 8; width: 52px; height: 52px;
     font-size: 28px; font-weight: bold; background: #5b6f8a; }
   #menu { position: fixed; inset: 0; z-index: 20; background: #0007; display: none;
-    align-items: center; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 16px; }
+    align-items: center; justify-content: center; gap: 16px; flex-wrap: wrap; padding: 16px; }
   #menu.show { display: flex; }
-  #menu .opt { width: min(28vh, 17vw); height: min(36vh, 24vw); border-radius: 28px; background: #fff; color: #1f3a5f;
+  #menu .opt { width: min(24vh, 14.5vw); height: min(34vh, 22vw); border-radius: 28px; background: #fff; color: #1f3a5f;
     flex-direction: column; gap: 10px; border: 6px solid transparent; }
   #menu .opt.cur { border-color: #2b8a3e; }
-  #menu .opt .n { font-size: min(11vh, 8vw); font-weight: bold; line-height: 1; }
-  #menu .opt .v { font-size: min(6vh, 4.8vw); font-weight: bold; line-height: 1.1; letter-spacing: .05em; }
+  #menu .opt .n { font-size: min(10vh, 7vw); font-weight: bold; line-height: 1; }
+  #menu .opt .v { font-size: min(5.2vh, 3.8vw); font-weight: bold; line-height: 1.1; letter-spacing: .04em; }
   @media (orientation: portrait) {
     #main { flex-direction: column; } #left { flex: 0 0 42%; }
     #ddTop { width: min(23vh, 38vw); height: min(23vh, 38vw); font-size: min(15vh, 24vw); }
     #ddGrid { grid-template-columns: repeat(2, auto); gap: min(2.5vh, 4vw); }
     .dd-card { width: min(23vh, 38vw); height: min(23vh, 38vw); font-size: min(15vh, 24vw); }
     .pair-card { width: min(34vh, 41vw); height: min(34vh, 41vw); font-size: min(22vh, 26vw); }
+    #m6 { padding: 16px 14px; }
+    #m6Left { width: min(24vh, 38vw); height: min(24vh, 38vw); font-size: min(16vh, 24vw); }
+    .m6-card { width: min(23vh, 36vw); height: min(23vh, 36vw); font-size: min(15vh, 22vw); }
     #ddFinger { font-size: min(20vh, 34vw); }
-    #menu .opt { width: min(22vh, 40vw); height: min(22vh, 40vw); }
-    #menu .opt .n { font-size: min(9vh, 12vw); }
-    #menu .opt .v { font-size: min(5vh, 7vw); }
+    #menu .opt { width: min(22vh, 40vw); height: min(20vh, 34vw); }
+    #menu .opt .n { font-size: min(8vh, 11vw); }
+    #menu .opt .v { font-size: min(4.5vh, 6.2vw); }
   }
 </style>
 </head>
@@ -152,6 +172,19 @@
       <div class="pair-card" id="pRight">a</div>
     </div>
   </div>
+  <div id="m6">
+    <div id="m6LeftWrap">
+      <button class="sp" id="spM6" aria-label="Laut sprechen">
+        <svg viewBox="0 0 24 24" fill="#fff"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3A4.5 4.5 0 0 0 14 8v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+      </button>
+      <div id="m6Left">A</div>
+    </div>
+    <div id="m6Col">
+      <div class="m6-card">b</div>
+      <div class="m6-card">a</div>
+      <div class="m6-card">m</div>
+    </div>
+  </div>
 </div>
 <div id="ddFinger">👆</div>
 
@@ -164,6 +197,7 @@
   <button class="opt" data-m="3"><div class="n">3</div><div class="v">abc</div></button>
   <button class="opt" data-m="4"><div class="n">4</div><div class="v">a ➔ a</div></button>
   <button class="opt" data-m="5"><div class="n">5</div><div class="v">A ➔ a</div></button>
+  <button class="opt" data-m="6"><div class="n">6</div><div class="v">A ➔ abc</div></button>
 </div>
 
 <script>
@@ -590,16 +624,19 @@ function setMode(m) {
   document.body.classList.toggle("m1", m === 1 || m === 3);
   document.body.classList.toggle("m2", m === 2 || m === 4);
   document.body.classList.toggle("m5", m === 5);
+  document.body.classList.toggle("m6", m === 6);
   $("mode").textContent = m;
   document.querySelectorAll("#menu .opt").forEach(o => o.classList.toggle("cur", +o.dataset.m === m));
   stopM1Demo();
   stopDdDemo();
   stopPairDemo();
+  stopM6Demo();
   clearTimeout(soundTimer);
   stopAnim();
   if (isTraceMode()) { fit(); runM1Demo(); }
   else if (isDdMode()) { startDdRound(); }
-  else { startPairRound(); }
+  else if (m === 5) { startPairRound(); }
+  else { startM6Round(); }
 }
 $("mode").onclick = () => $("menu").classList.add("show");
 $("menu").onclick = e => {
@@ -630,7 +667,7 @@ function finale() {
   say("Super!");
   setTimeout(() => {
     f.classList.remove("show");
-    setMode(mode < 5 ? mode + 1 : 1);
+    setMode(mode < 6 ? mode + 1 : 1);
   }, 3000);
 }
 
@@ -745,6 +782,9 @@ window.addEventListener("pointerdown", e => {
   } else if (mode === 5 && pairInDemo) {
     stopPairDemo();
     nextPairTask();
+  } else if (mode === 6 && m6InDemo) {
+    stopM6Demo();
+    nextM6Task();
   }
 }, true);
 function nextDdTask() {
@@ -960,6 +1000,152 @@ function endPairDrag(e) {
 }
 pLeft.addEventListener("pointerup", endPairDrag);
 pLeft.addEventListener("pointercancel", endPairDrag);
+
+// ---------- Übung 6: Großbuchstaben links oben in passenden Kleinbuchstaben rechts ziehen ----------
+const m6Left = $("m6Left");
+const m6Cards = Array.from(document.querySelectorAll("#m6Col .m6-card"));
+let m6Idx = 0, m6Target = "A", m6Busy = false, m6InDemo = false, m6Drag = null, m6Timers = [];
+
+function stopM6Demo() {
+  m6InDemo = false;
+  m6Timers.forEach(t => clearTimeout(t));
+  m6Timers = [];
+  ddFinger.style.display = "none";
+  ddFinger.style.transition = "none";
+  m6Left.style.transition = "none";
+  m6Left.style.transform = "";
+  m6Left.style.opacity = "1";
+  m6Left.classList.remove("wackeln", "dragging");
+  m6Cards.forEach(c => c.classList.remove("ok"));
+  m6Drag = null;
+}
+function setupM6Board(letter, fixedChoices) {
+  m6Target = letter;
+  const low = letter.toLowerCase();
+  m6Left.textContent = letter;
+  m6Left.style.transition = "none";
+  m6Left.style.transform = "";
+  m6Left.style.opacity = "1";
+  m6Left.classList.remove("wackeln", "dragging");
+  const choices = fixedChoices || (() => {
+    const pool = shuffle(LETTERS_LOW.filter(x => x !== low)).slice(0, 2);
+    pool.push(low);
+    return shuffle(pool);
+  })();
+  m6Cards.forEach((c, idx) => {
+    c.textContent = choices[idx];
+    c.classList.remove("ok");
+  });
+  const ts = setTimeout(() => { if (mode === 6) laut(letter); }, 150);
+  m6Timers.push(ts);
+}
+$("spM6").onclick = () => laut(m6Target);
+function startM6Round() {
+  stopM6Demo();
+  m6Idx = 0;
+  runM6Demo();
+}
+function runM6Demo(left = 2) {
+  m6Busy = true;
+  m6InDemo = true;
+  setupM6Board("A", ["b", "a", "m"]);
+  const t1 = setTimeout(() => {
+    if (mode !== 6 || !m6InDemo) return;
+    const rL = m6Left.getBoundingClientRect();
+    const targetCard = m6Cards[1];
+    const rTar = targetCard.getBoundingClientRect();
+    const sx = rL.left + rL.width * 0.35, sy = rL.top + rL.height * 0.45;
+    const dx = (rTar.left + rTar.width / 2) - (rL.left + rL.width / 2);
+    const dy = (rTar.top + rTar.height / 2) - (rL.top + rL.height / 2);
+    ddFinger.style.transition = "none";
+    ddFinger.style.left = sx + "px";
+    ddFinger.style.top = sy + "px";
+    ddFinger.style.transform = "translate(0, 0) scale(1)";
+    ddFinger.style.display = "block";
+    const t2 = setTimeout(() => {
+      if (mode !== 6 || !m6InDemo) return;
+      m6Left.classList.add("dragging");
+      m6Left.style.transition = "transform 1.6s ease-in-out";
+      ddFinger.style.transition = "transform 1.6s ease-in-out";
+      m6Left.style.transform = `translate(${dx}px, ${dy}px)`;
+      ddFinger.style.transform = `translate(${dx}px, ${dy}px) scale(0.95)`;
+    }, 500);
+    const t3 = setTimeout(() => {
+      if (mode !== 6 || !m6InDemo) return;
+      m6Left.classList.remove("dragging");
+      m6Left.style.opacity = "0";
+      ddFinger.style.display = "none";
+      targetCard.classList.add("ok");
+    }, 2150);
+    const t4 = setTimeout(() => {
+      if (mode !== 6 || !m6InDemo) return;
+      if (left > 1) runM6Demo(left - 1);
+      else { m6InDemo = false; nextM6Task(); }
+    }, 3100);
+    m6Timers.push(t2, t3, t4);
+  }, 450);
+  m6Timers.push(t1);
+}
+function nextM6Task() {
+  if (m6Idx >= LETTERS_UP.length) {
+    m6Busy = true;
+    finale();
+    return;
+  }
+  m6Busy = false;
+  setupM6Board(LETTERS_UP[m6Idx]);
+}
+m6Left.addEventListener("pointerdown", e => {
+  if (mode !== 6 || m6Busy) return;
+  m6Left.setPointerCapture(e.pointerId);
+  m6Left.classList.remove("wackeln");
+  m6Left.classList.add("dragging");
+  m6Left.style.transition = "none";
+  m6Drag = { id: e.pointerId, sx: e.clientX, sy: e.clientY, dx: 0, dy: 0 };
+});
+m6Left.addEventListener("pointermove", e => {
+  if (!m6Drag || e.pointerId !== m6Drag.id) return;
+  m6Drag.dx = e.clientX - m6Drag.sx;
+  m6Drag.dy = e.clientY - m6Drag.sy;
+  m6Left.style.transform = `translate(${m6Drag.dx}px, ${m6Drag.dy}px)`;
+});
+function endM6Drag(e) {
+  if (!m6Drag || e.pointerId !== m6Drag.id) return;
+  m6Left.classList.remove("dragging");
+  const rL = m6Left.getBoundingClientRect();
+  const cx = rL.left + rL.width / 2, cy = rL.top + rL.height / 2;
+  m6Drag = null;
+  let hit = null, bestDist = Infinity;
+  for (const c of m6Cards) {
+    const r = c.getBoundingClientRect();
+    const ox = Math.max(0, Math.min(rL.right, r.right) - Math.max(rL.left, r.left));
+    const oy = Math.max(0, Math.min(rL.bottom, r.bottom) - Math.max(rL.top, r.top));
+    const pointerInside = e.clientX >= r.left && e.clientX <= r.right && e.clientY >= r.top && e.clientY <= r.bottom;
+    if (pointerInside || (ox * oy > (r.width * r.height) * 0.2)) {
+      const dist = Math.hypot(cx - (r.left + r.width / 2), cy - (r.top + r.height / 2));
+      if (dist < bestDist) { bestDist = dist; hit = c; }
+    }
+  }
+  if (!hit) {
+    m6Left.style.transition = "transform .2s ease-out";
+    m6Left.style.transform = "";
+    return;
+  }
+  if (hit.textContent === m6Target.toLowerCase()) {
+    m6Busy = true;
+    m6Left.style.opacity = "0";
+    hit.classList.add("ok");
+    m6Idx++;
+    const t = setTimeout(() => { if (mode === 6) nextM6Task(); }, 600);
+    m6Timers.push(t);
+  } else {
+    m6Left.style.transition = "none";
+    m6Left.style.transform = "";
+    warn(m6Left);
+  }
+}
+m6Left.addEventListener("pointerup", endM6Drag);
+m6Left.addEventListener("pointercancel", endM6Drag);
 $("next").onclick = () => {
   if (m1Busy) return;
   if (strokes.length === 0) warn();
