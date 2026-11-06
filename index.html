@@ -48,8 +48,8 @@
   #fin { position: fixed; inset: 0; z-index: 10; background: #f4f1ea; display: none;
     flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
   #fin.show { display: flex; }
-  #fin .star { font-size: min(45vh, 40vw); line-height: 1; animation: puls 1s ease-in-out infinite; }
-  #fin .txt { font-size: min(18vh, 14vw); font-weight: bold; color: #1f3a5f; }
+  #fin .star { font-size: min(55vh, 55vw); line-height: 1; animation: puls 1s ease-in-out infinite;
+    filter: drop-shadow(0 8px 20px #0003); }
   .konf { position: absolute; top: -5vh; width: 14px; height: 22px; border-radius: 3px;
     animation: fall linear forwards; }
   @keyframes fall { to { transform: translateY(115vh) rotate(720deg); } }
@@ -187,7 +187,7 @@
 </div>
 <div id="ddFinger">👆</div>
 
-<div id="fin"><div class="star">⭐</div><div class="txt">Super!</div></div>
+<div id="fin"><div class="star">🏆</div></div>
 
 <button id="mode" aria-label="Übung wählen">1</button>
 <div id="menu">
@@ -665,6 +665,36 @@ function warn(el = $("right")) {
   void el.offsetWidth;
   el.classList.add("wackeln");
 }
+function playFanfare() {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!actxAudio && AudioCtx) actxAudio = new AudioCtx();
+    if (!actxAudio) return;
+    if (actxAudio.state === "suspended") actxAudio.resume().catch(() => {});
+    const now = actxAudio.currentTime;
+    const notes = [
+      { f: 523.25, t: 0.00, d: 0.16, v: 0.22 },
+      { f: 659.25, t: 0.15, d: 0.16, v: 0.22 },
+      { f: 783.99, t: 0.30, d: 0.18, v: 0.24 },
+      { f: 1046.50, t: 0.48, d: 1.25, v: 0.28 },
+      { f: 783.99, t: 0.48, d: 1.25, v: 0.16 },
+      { f: 659.25, t: 0.48, d: 1.25, v: 0.14 }
+    ];
+    notes.forEach(n => {
+      const osc = actxAudio.createOscillator();
+      const gain = actxAudio.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(n.f, now + n.t);
+      gain.gain.setValueAtTime(0.001, now + n.t);
+      gain.gain.linearRampToValueAtTime(n.v, now + n.t + 0.03);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + n.t + n.d);
+      osc.connect(gain);
+      gain.connect(actxAudio.destination);
+      osc.start(now + n.t);
+      osc.stop(now + n.t + n.d + 0.02);
+    });
+  } catch (e) {}
+}
 function finale() {
   const f = $("fin");
   f.querySelectorAll(".konf").forEach(k => k.remove());
@@ -679,7 +709,7 @@ function finale() {
     f.appendChild(c);
   }
   f.classList.add("show");
-  say("Super!");
+  playFanfare();
   setTimeout(() => {
     f.classList.remove("show");
     setMode(mode < 6 ? mode + 1 : 1);
