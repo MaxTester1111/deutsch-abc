@@ -588,40 +588,89 @@ function runM1Demo(left = 2) {
 const sharedAudio = new Audio();
 sharedAudio.preload = "auto";
 const AudioCtx = window.AudioContext || window.webkitAudioContext;
-const actxAudio = AudioCtx ? new AudioCtx() : null;
+let actxAudio = AudioCtx ? new AudioCtx() : null;
 const audioBuffers = {};
-let curSource = null;
+const rawAudio = {};
+let curSource = null, playSeq = 0, audioUnlocked = false;
 
-// Alle 29 MP3-Dateien vorab laden, damit sie auf dem Handy sofort und ohne Blockade abspielen
-DATA.forEach(d => {
-  const l = d[0], url = "audio/" + encodeURIComponent(l) + ".mp3";
-  if (actxAudio && location.protocol.startsWith("http")) {
-    fetch(url).then(r => r.ok ? r.arrayBuffer() : Promise.reject())
-      .then(b => actxAudio.decodeAudioData(b))
-      .then(buf => { audioBuffers[l] = buf; })
-      .catch(() => {});
+function decodeLetter(l) {
+  if (audioBuffers[l] || !rawAudio[l] || !actxAudio) return Promise.resolve(audioBuffers[l]);
+  return actxAudio.decodeAudioData(rawAudio[l].slice(0))
+    .then(buf => { audioBuffers[l] = buf; return buf; })
+    .catch(() => null);
+}
+
+// Alle 29 MP3-Dateien vorab laden (A zuerst, danach der Reihe nach)
+(async () => {
+  if (!location.protocol.startsWith("http")) return;
+  for (const d of DATA) {
+    const l = d[0], url = "audio/" + encodeURIComponent(l) + ".mp3";
+    try {
+      const r = await fetch(url);
+      if (r.ok) {
+        rawAudio[l] = await r.arrayBuffer();
+        await decodeLetter(l);
+      }
+    } catch (_) {}
   }
-});
+})();
 
 // Entsperrt Audio auf Mobilgeräten beim ersten Fingerkontakt
 function unlockAudio() {
-  if (actxAudio && actxAudio.state === "suspended") actxAudio.resume().catch(() => {});
+  if (!actxAudio && AudioCtx) actxAudio = new AudioCtx();
+  if (actxAudio) {
+    if (actxAudio.state === "suspended") actxAudio.resume().catch(() => {});
+    if (!audioUnlocked) {
+      try {
+        const b = actxAudio.createBuffer(1, 1, 22050);
+        const s = actxAudio.createBufferSource();
+        s.buffer = b;
+        s.connect(actxAudio.destination);
+        s.start(0);
+        if (actxAudio.state === "running") audioUnlocked = true;
+      } catch (_) {}
+    }
+  }
 }
-window.addEventListener("pointerdown", unlockAudio, { passive: true });
+["pointerdown", "pointerup", "touchend", "click"].forEach(ev =>
+  window.addEventListener(ev, unlockAudio, { passive: true, capture: true })
+);
+
+function startBufSource(buf, seq) {
+  if (seq !== playSeq || !buf || !actxAudio) return;
+  if (curSource) { try { curSource.stop(); } catch (_) {} curSource = null; }
+  const src = actxAudio.createBufferSource();
+  src.buffer = buf;
+  src.connect(actxAudio.destination);
+  src.start(0);
+  curSource = src;
+}
 
 // Spielt audio/<Buchstabe>.mp3 ab (z. B. audio/M.mp3); fehlt die Datei, bleibt es still
 function laut(l) {
   const key = l.toUpperCase();
+  const seq = ++playSeq;
   if (curSource) { try { curSource.stop(); } catch (_) {} curSource = null; }
   sharedAudio.pause();
   if ("speechSynthesis" in window) speechSynthesis.cancel();
-  if (actxAudio && audioBuffers[key]) {
-    if (actxAudio.state === "suspended") actxAudio.resume().catch(() => {});
-    const src = actxAudio.createBufferSource();
-    src.buffer = audioBuffers[key];
-    src.connect(actxAudio.destination);
-    src.start(0);
-    curSource = src;
+  if (actxAudio && (audioBuffers[key] || rawAudio[key])) {
+    const run = () => {
+      if (seq !== playSeq) return;
+      if (audioBuffers[key]) startBufSource(audioBuffers[key], seq);
+      else decodeLetter(key).then(buf => {
+        if (buf) startBufSource(buf, seq);
+        else if (seq === playSeq) {
+          sharedAudio.src = "audio/" + encodeURIComponent(key) + ".mp3";
+          sharedAudio.currentTime = 0;
+          sharedAudio.play().catch(() => {});
+        }
+      });
+    };
+    if (actxAudio.state === "suspended") {
+      actxAudio.resume().then(run).catch(run);
+    } else {
+      run();
+    }
     return;
   }
   sharedAudio.src = "audio/" + encodeURIComponent(key) + ".mp3";
@@ -815,12 +864,15 @@ function runDdDemo(left = 2) {
 }
 // Bricht die laufende Spielanleitung sofort ab, sobald der Bildschirm berührt wird
 window.addEventListener("pointerdown", e => {
+  unlockAudio();
   if (e.target.closest("#mode, #menu")) return;
   if (isTraceMode() && m1Busy) {
     stopM1Demo();
     strokes = [];
     redraw();
     startAnim();
+    clearTimeout(soundTimer);
+    soundTimer = setTimeout(() => laut(DATA[i][0]), 150);
   } else if (isDdMode() && ddInDemo) {
     stopDdDemo();
     nextDdTask();
