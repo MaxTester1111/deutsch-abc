@@ -30,12 +30,12 @@
   button:active { transform: scale(.92); }
   .sp { width: 84px; height: 84px; }
   .sp svg { width: 46px; height: 46px; }
-  #bar { display: flex; align-items: center; gap: 12px; padding: 0 16px 14px; }
+  #bar { display: flex; align-items: center; justify-content: flex-end; padding: 0 16px 14px; }
   .nav { width: 96px; height: 96px; background: #2b8a3e; font-size: 56px; flex: 0 0 auto; }
-  #strip { flex: 1; display: flex; gap: 6px; overflow-x: auto; padding: 6px; touch-action: pan-x; }
-  #strip button { flex: 0 0 auto; width: 56px; height: 56px; border-radius: 14px; background: #fff; color: #1f3a5f;
-    font-size: 28px; font-weight: bold; }
-  #strip button.cur { background: #1f3a5f; color: #fff; }
+  @keyframes nextPuls {
+    50% { transform: scale(1.14); box-shadow: 0 0 0 10px #2b8a3e55, 0 4px 12px #0004; }
+  }
+  #next.puls { animation: nextPuls 1s ease-in-out infinite; }
   @keyframes wackeln {
     0%   { transform: translateX(0);     box-shadow: 0 0 0 0 #e03131, 0 2px 8px #0002; }
     15%  { transform: translateX(-16px); box-shadow: 0 0 0 8px #e03131, 0 2px 8px #0002; }
@@ -146,7 +146,6 @@
     </div>
   </div>
   <div id="bar">
-    <div id="strip"></div>
     <button class="nav" id="next" aria-label="Weiter">▶</button>
   </div>
   <div id="dd">
@@ -409,16 +408,17 @@ function say(text) {
 }
 
 // ---------- Anzeige ----------
+let nextPulseTimer = null;
+function stopNextPulse() {
+  clearTimeout(nextPulseTimer);
+  $("next").classList.remove("puls");
+}
 function render() {
   const l = DATA[i][0];
   $("big").textContent = mode === 3 ? l.toLowerCase() : l.toUpperCase();
+  stopNextPulse();
   strokes = []; redraw();
   drawTemplate(); startAnim();
-  document.querySelectorAll("#strip button").forEach((b, k) => {
-    b.textContent = mode === 3 ? DATA[k][0].toLowerCase() : DATA[k][0];
-    b.classList.toggle("cur", k === i);
-  });
-  const c = document.querySelector("#strip button.cur"); if (c) c.scrollIntoView({inline: "center", block: "nearest"});
 }
 
 // ---------- Whiteboard ----------
@@ -445,9 +445,23 @@ function pt(e) {
   const r = cv.getBoundingClientRect();
   return [(e.clientX - r.left) / r.width, (e.clientY - r.top) / r.height];
 }
-cv.addEventListener("pointerdown", e => { if (m1Busy) return; cv.setPointerCapture(e.pointerId); cur = [pt(e)]; strokes.push(cur); redraw(); });
+cv.addEventListener("pointerdown", e => {
+  if (m1Busy) return;
+  stopNextPulse();
+  cv.setPointerCapture(e.pointerId);
+  cur = [pt(e)];
+  strokes.push(cur);
+  redraw();
+});
 cv.addEventListener("pointermove", e => { if (!cur) return; cur.push(pt(e)); redraw(); });
-["pointerup", "pointercancel"].forEach(t => cv.addEventListener(t, () => { cur = null; }));
+["pointerup", "pointercancel"].forEach(t => cv.addEventListener(t, () => {
+  if (!cur) return;
+  cur = null;
+  clearTimeout(nextPulseTimer);
+  nextPulseTimer = setTimeout(() => {
+    if (!m1Busy && strokes.length > 0) $("next").classList.add("puls");
+  }, 3000);
+}));
 
 // ---------- Übung 1 & 3: Spielanleitung (Finger-Visualisierung) ----------
 let m1Busy = false, m1Timers = [], m1Raf = 0;
@@ -455,6 +469,7 @@ function isTraceMode() { return mode === 1 || mode === 3; }
 function isDdMode() { return mode === 2 || mode === 4; }
 function stopM1Demo() {
   m1Busy = false;
+  stopNextPulse();
   m1Timers.forEach(t => clearTimeout(t));
   m1Timers = [];
   if (m1Raf) { cancelAnimationFrame(m1Raf); m1Raf = 0; }
@@ -1153,12 +1168,6 @@ $("next").onclick = () => {
   else go(i + 1);
 };
 
-DATA.forEach((d, k) => {
-  const b = document.createElement("button");
-  b.textContent = d[0];
-  b.onclick = () => { if (!m1Busy) go(k); };
-  $("strip").appendChild(b);
-});
 window.addEventListener("resize", fit);
 fit(); setMode(1);
 </script>
