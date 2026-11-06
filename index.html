@@ -493,6 +493,7 @@ function runM1Demo(left = 2) {
   stopM1Demo();
   m1Busy = true;
   i = 0; render(); stopAnim();
+  const t0 = setTimeout(() => { if (isTraceMode() && m1Busy) laut("A"); }, 150);
   const t1 = setTimeout(() => {
     if (!isTraceMode() || !m1Busy) return;
     const g = geom();
@@ -581,7 +582,7 @@ function runM1Demo(left = 2) {
     }, 950);
     m1Timers.push(tGlide, tTrace);
   }, 500);
-  m1Timers.push(t1);
+  m1Timers.push(t0, t1);
 }
 
 // ---------- Bedienung ----------
