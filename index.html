@@ -592,8 +592,26 @@ const AudioCtx = window.AudioContext || window.webkitAudioContext;
 let actxAudio = AudioCtx ? new AudioCtx() : null;
 const audioBuffers = {};
 const rawAudio = {};
+const audioUrlMap = {};
 let curSource = null, playSeq = 0, audioUnlocked = false;
 
+function candidateUrls(l) {
+  const nfd = "audio/" + encodeURIComponent(l.normalize("NFD")) + ".mp3";
+  const nfc = "audio/" + encodeURIComponent(l.normalize("NFC")) + ".mp3";
+  return nfd === nfc ? [nfc] : [nfd, nfc];
+}
+function playFallbackAudio(key) {
+  const urls = audioUrlMap[key] ? [audioUrlMap[key]] : candidateUrls(key);
+  let idx = 0;
+  const tryNext = () => {
+    if (idx >= urls.length) return;
+    sharedAudio.onerror = () => { sharedAudio.onerror = null; idx++; tryNext(); };
+    sharedAudio.src = urls[idx];
+    sharedAudio.currentTime = 0;
+    sharedAudio.play().catch(() => {});
+  };
+  tryNext();
+}
 function decodeLetter(l) {
   if (audioBuffers[l] || !rawAudio[l] || !actxAudio) return Promise.resolve(audioBuffers[l]);
   return actxAudio.decodeAudioData(rawAudio[l].slice(0))
@@ -601,18 +619,22 @@ function decodeLetter(l) {
     .catch(() => null);
 }
 
-// Alle 29 MP3-Dateien vorab laden (A zuerst, danach der Reihe nach)
+// Alle 29 MP3-Dateien vorab laden (A zuerst, danach der Reihe nach; unterstützt NFC & NFD Umlaute)
 (async () => {
   if (!location.protocol.startsWith("http")) return;
   for (const d of DATA) {
-    const l = d[0], url = "audio/" + encodeURIComponent(l) + ".mp3";
-    try {
-      const r = await fetch(url);
-      if (r.ok) {
-        rawAudio[l] = await r.arrayBuffer();
-        await decodeLetter(l);
-      }
-    } catch (_) {}
+    const l = d[0];
+    for (const url of candidateUrls(l)) {
+      try {
+        const r = await fetch(url);
+        if (r.ok) {
+          audioUrlMap[l] = url;
+          rawAudio[l] = await r.arrayBuffer();
+          await decodeLetter(l);
+          break;
+        }
+      } catch (_) {}
+    }
   }
 })();
 
@@ -660,11 +682,7 @@ function laut(l) {
       if (audioBuffers[key]) startBufSource(audioBuffers[key], seq);
       else decodeLetter(key).then(buf => {
         if (buf) startBufSource(buf, seq);
-        else if (seq === playSeq) {
-          sharedAudio.src = "audio/" + encodeURIComponent(key) + ".mp3";
-          sharedAudio.currentTime = 0;
-          sharedAudio.play().catch(() => {});
-        }
+        else if (seq === playSeq) playFallbackAudio(key);
       });
     };
     if (actxAudio.state === "suspended") {
@@ -674,9 +692,7 @@ function laut(l) {
     }
     return;
   }
-  sharedAudio.src = "audio/" + encodeURIComponent(key) + ".mp3";
-  sharedAudio.currentTime = 0;
-  sharedAudio.play().catch(() => {});
+  playFallbackAudio(key);
 }
 let soundTimer = null;
 function go(n) {
